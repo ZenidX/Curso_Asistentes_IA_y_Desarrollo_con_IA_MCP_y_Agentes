@@ -1,0 +1,114 @@
+# =============================================================================
+# CONFIGURACIÓN DE APIs DE IA GENERATIVA
+# =============================================================================
+#
+# INSTRUCCIONES:
+# 1. Copia este archivo y renómbralo a "config.yaml"
+# 2. Añade tus API keys en cada sección
+# 3. No compartas tu archivo config.yaml (está en .gitignore)
+#
+# =============================================================================
+
+apis:
+  # ---------------------------------------------------------------------------
+  # OpenAI (GPT-4, GPT-3.5)
+  # ---------------------------------------------------------------------------
+  # Cómo obtener tu API key GRATIS:
+  # 1. Regístrate en https://platform.openai.com/
+  # 2. Ve a https://platform.openai.com/api-keys
+  # 3. Crea una nueva API key
+  #
+  # Tier gratuito: $5 de crédito inicial para nuevos usuarios
+  # ---------------------------------------------------------------------------
+  openai:
+    api_key: "sk-tu-api-key-aqui"
+    default_model: "gpt-4o-mini"
+    # Modelos disponibles:
+    # - gpt-4o-mini (más económico, muy capaz)
+    # - gpt-4o (más potente)
+    # - gpt-4-turbo (anterior generación)
+    # - gpt-3.5-turbo (económico, rápido)
+
+  # ---------------------------------------------------------------------------
+  # Anthropic (Claude)
+  # ---------------------------------------------------------------------------
+  # Cómo obtener tu API key GRATIS:
+  # 1. Regístrate en https://console.anthropic.com/
+  # 2. Ve a Settings > API Keys
+  # 3. Crea una nueva API key
+  #
+  # Tier gratuito: Créditos gratuitos al registrarse
+  # ---------------------------------------------------------------------------
+  anthropic:
+    api_key: "sk-ant-tu-api-key-aqui"
+    default_model: "claude-3-haiku-20240307"
+    # Modelos disponibles:
+    # - claude-3-haiku-20240307 (más rápido y económico)
+    # - claude-3-sonnet-20240229 (equilibrado)
+    # - claude-3-opus-20240229 (más potente)
+    # - claude-3-5-sonnet-20241022 (última generación)
+
+  # ---------------------------------------------------------------------------
+  # Google AI (Gemini)
+  # ---------------------------------------------------------------------------
+  # Cómo obtener tu API key GRATIS:
+  # 1. Ve a https://aistudio.google.com/
+  # 2. Haz clic en "Get API Key"
+  # 3. Crea una nueva API key
+  #
+  # Tier gratuito: MUY GENEROSO - 60 requests/minuto gratis
+  # ---------------------------------------------------------------------------
+  google:
+    api_key: "tu-api-key-aqui"
+    default_model: "gemini-1.5-flash"
+    # Modelos disponibles:
+    # - gemini-1.5-flash (rápido, económico)
+    # - gemini-1.5-pro (más capaz)
+    # - gemini-1.0-pro (anterior generación)
+
+  # ---------------------------------------------------------------------------
+  # Ollama (Modelos Locales)
+  # ---------------------------------------------------------------------------
+  # Cómo configurar Ollama GRATIS:
+  # 1. Descarga Ollama desde https://ollama.ai/
+  # 2. Instálalo en tu sistema
+  # 3. Ejecuta: ollama pull llama3.2
+  #
+  # 100% GRATIS - Sin límites, sin API key, funciona offline
+  # ---------------------------------------------------------------------------
+  ollama:
+    base_url: "http://localhost:11434"
+    default_model: "llama3.2"
+    # Modelos populares (ejecuta "ollama pull <modelo>"):
+    # - llama3.2 (3B parámetros, ligero)
+    # - llama3.2:70b (70B parámetros, potente)
+    # - mistral (7B, muy bueno)
+    # - codellama (optimizado para código)
+    # - phi3 (Microsoft, compacto)
+
+# =============================================================================
+# PARÁMETROS POR DEFECTO
+# =============================================================================
+defaults:
+  # Temperature: Controla la creatividad (0.0 = determinista, 2.0 = muy creativo)
+  temperature: 0.7
+
+  # Max tokens: Límite de tokens en la respuesta
+  max_tokens: 1024
+
+  # Top P: Nucleus sampling (alternativa a temperature)
+  top_p: 1.0
+
+  # Frequency penalty: Penaliza repetición de tokens (-2.0 a 2.0)
+  frequency_penalty: 0.0
+
+  # Presence penalty: Penaliza tokens ya usados (-2.0 a 2.0)
+  presence_penalty: 0.0
+
+# =============================================================================
+# CONFIGURACIÓN DE LA WEBAPP
+# =============================================================================
+webapp:
+  host: "127.0.0.1"
+  port: 8000
+  debug: true
