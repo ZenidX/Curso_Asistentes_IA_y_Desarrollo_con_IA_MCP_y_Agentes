@@ -1,529 +1,756 @@
 # Módulo 2: Herramientas CLI de IA para Coding
 
-## Índice
-1. [Introducción](#1-introducción)
-2. [Claude Code (Anthropic)](#2-claude-code-anthropic)
-3. [Gemini CLI (Google)](#3-gemini-cli-google)
-4. [Codex CLI (OpenAI)](#4-codex-cli-openai)
-5. [Comparativa de CLIs](#5-comparativa-de-clis)
-6. [Ejercicios Prácticos](#6-ejercicios-prácticos)
+## Información del Módulo
+
+| | |
+|---|---|
+| **Duración estimada** | 3-4 horas |
+| **Nivel** | Principiante-Intermedio |
+| **Prerrequisitos** | Módulo 1 completado, terminal básica |
 
 ---
 
-## 1. Introducción
+## Objetivos de Aprendizaje
 
-Las herramientas CLI de IA para coding son agentes que viven en tu terminal y te ayudan a programar más rápido mediante comandos en lenguaje natural. Entienden tu codebase, ejecutan tareas rutinarias y manejan workflows completos.
+Al completar este módulo, serás capaz de:
 
-### ¿Por qué usar CLIs de IA?
+1. ✅ Instalar y configurar Claude Code, Gemini CLI y Codex CLI
+2. ✅ Ejecutar comandos básicos e interactuar con tu codebase via CLI
+3. ✅ Crear archivos de contexto (CLAUDE.md, GEMINI.md) para personalizar el comportamiento
+4. ✅ Elegir la herramienta adecuada según el caso de uso
+5. ✅ Crear comandos personalizados para automatizar tareas repetitivas
 
-| Ventaja | Descripción |
-|---------|-------------|
-| **Velocidad** | No necesitas cambiar de contexto entre IDE y chat |
-| **Integración** | Acceso directo al sistema de archivos y terminal |
-| **Automatización** | Pueden ejecutar comandos, tests y builds |
-| **Contexto** | Entienden todo tu proyecto, no solo archivos aislados |
+---
+
+## El Proyecto del Curso: TaskFlow
+
+A lo largo de los módulos 2-6, construiremos **TaskFlow**, una aplicación de gestión de tareas. En este módulo, usaremos las CLIs de IA para:
+
+- Analizar un proyecto existente
+- Generar código nuevo
+- Refactorizar código
+- Ejecutar y debuggear tests
+
+```
+TaskFlow/
+├── src/
+│   ├── models/       # Modelos de datos
+│   ├── services/     # Lógica de negocio
+│   └── api/          # Endpoints REST
+├── tests/
+└── package.json
+```
+
+---
+
+## 1. Introducción: ¿Por Qué CLIs de IA?
+
+**⏱️ Tiempo estimado: 15 minutos**
+
+### El Problema
+
+Imagina este escenario cotidiano:
+
+1. Estás programando en VS Code
+2. Tienes una duda → abres ChatGPT en el navegador
+3. Copias código de tu editor al chat
+4. Copias la respuesta de vuelta
+5. Repites 20 veces al día
+
+**Tiempo perdido en cambios de contexto: ~1-2 horas/día**
+
+### La Solución
+
+Las CLIs de IA viven en tu terminal. No necesitas cambiar de contexto porque:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Tu Terminal                                                 │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ $ claude "Explica qué hace src/services/auth.ts"        ││
+│  │                                                          ││
+│  │ El archivo implementa la autenticación JWT...           ││
+│  │ [Lee el archivo automáticamente, sin que copies nada]   ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Comparativa: Chat Web vs CLI
+
+| Aspecto | Chat Web | CLI de IA |
+|---------|----------|-----------|
+| Acceso a archivos | Manual (copiar/pegar) | Automático |
+| Ejecutar comandos | No puede | Sí |
+| Contexto del proyecto | Limitado | Completo |
+| Flujo de trabajo | Interrumpido | Integrado |
+| Automatización | Imposible | Total |
+
+### 💡 Concepto Clave
+
+> **Agente de Coding**: Un LLM que no solo responde preguntas, sino que puede **leer archivos**, **escribir código**, **ejecutar comandos** y **verificar resultados**. Es como tener un programador junior en tu terminal que nunca se cansa.
 
 ---
 
 ## 2. Claude Code (Anthropic)
 
-### Descripción
-Claude Code es una herramienta agéntica de programación que vive en tu terminal, entiende tu codebase y te ayuda a programar más rápido mediante comandos en lenguaje natural.
+**⏱️ Tiempo estimado: 45 minutos**
 
-### Instalación
+### ¿Por Qué Claude Code?
 
-```bash
-# macOS/Linux
-curl -fsSL https://claude.ai/install.sh | bash
+Claude Code es la CLI oficial de Anthropic. Sus fortalezas:
 
-# Windows (PowerShell como administrador)
+- **Mejor razonamiento**: Claude destaca en entender código complejo
+- **Más seguro**: Pide confirmación antes de acciones destructivas
+- **MCP nativo**: Integración profunda con Model Context Protocol
+
+### 2.1 Instalación
+
+#### Windows (PowerShell como Administrador)
+
+```powershell
+# Opción 1: Instalador oficial
 irm https://claude.ai/install.ps1 | iex
 
-# Alternativa via npm
+# Opción 2: Via npm (requiere Node.js)
 npm install -g @anthropic-ai/claude-code
-
-# Verificar instalación
-claude --version
 ```
 
-### Autenticación
+#### macOS / Linux
 
 ```bash
-# Primera ejecución - te pedirá login
+# Instalador oficial
+curl -fsSL https://claude.ai/install.sh | bash
+
+# Via npm
+npm install -g @anthropic-ai/claude-code
+```
+
+#### Verificar instalación
+
+```bash
+claude --version
+# Debería mostrar: claude-code v1.x.x
+```
+
+### ⚠️ Error Común: "claude no reconocido"
+
+**Síntoma**: `'claude' is not recognized as an internal or external command`
+
+**Causa**: La ruta no está en el PATH del sistema.
+
+**Solución**:
+```bash
+# Ver dónde se instaló
+npm list -g @anthropic-ai/claude-code
+
+# Añadir al PATH (ejemplo Windows)
+# Panel de Control → Sistema → Variables de entorno → Path → Añadir ruta
+```
+
+### 2.2 Primera Ejecución y Autenticación
+
+```bash
+# Iniciar Claude Code
 claude
 
-# O configurar API key manualmente
+# Te pedirá autenticarte:
+# 1. Abre el enlace en tu navegador
+# 2. Inicia sesión con tu cuenta de Anthropic
+# 3. Autoriza el acceso
+```
+
+**Alternativa: API Key manual**
+
+```bash
+# En tu .bashrc, .zshrc o variables de entorno Windows
 export ANTHROPIC_API_KEY="sk-ant-api03-xxxxxxxxxxxx"
 ```
 
-### Comandos Básicos
+### 📍 Checkpoint 1
+
+Antes de continuar, verifica que puedes:
+- [ ] Ejecutar `claude --version` sin errores
+- [ ] Iniciar `claude` y ver el prompt interactivo
+- [ ] Autenticarte correctamente
+
+---
+
+### 2.3 Modos de Operación
+
+Claude Code tiene tres niveles de autonomía:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  NIVEL DE AUTONOMÍA                                          │
+│                                                              │
+│  Seguro ◄─────────────────────────────────────────► Rápido  │
+│                                                              │
+│  ┌──────────┐     ┌──────────┐     ┌──────────────────────┐ │
+│  │  Normal  │     │Auto-edit │     │ YOLO (Peligroso!)    │ │
+│  │          │     │          │     │                      │ │
+│  │ Confirma │     │ Edita    │     │ Hace todo sin        │ │
+│  │ todo     │     │ archivos │     │ preguntar            │ │
+│  │          │     │ auto     │     │                      │ │
+│  └──────────┘     └──────────┘     └──────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Modo Normal (Recomendado para aprender)
+
+```bash
+claude
+# Pide confirmación para cada acción
+```
+
+#### Modo Auto-Accept
+
+```bash
+claude --auto-accept
+# Acepta ediciones de archivos automáticamente
+# PERO sigue pidiendo confirmación para comandos shell
+```
+
+#### Modo YOLO (¡Cuidado!)
+
+```bash
+claude --dangerously-skip-permissions
+# Ejecuta TODO sin confirmación
+# Solo para scripts automatizados en entornos controlados
+```
+
+### ⚠️ Error Común: Ejecutar YOLO en producción
+
+**Nunca** uses `--dangerously-skip-permissions` con acceso a:
+- Repositorios con código de producción
+- Bases de datos reales
+- Sistemas de archivos críticos
+
+Un simple "borra los archivos temporales" podría interpretarse mal.
+
+---
+
+### 2.4 Comandos Esenciales
+
+#### Prompt Interactivo
 
 ```bash
 # Iniciar sesión interactiva
 claude
 
-# Ejecutar prompt directo
-claude "Explica este codebase"
-
-# Modo no interactivo (pipeable)
-claude -p "Analiza app.log y encuentra errores"
-
-# Con archivo de entrada
-cat error.log | claude -p "¿Qué causó este error?"
-
-# Resumir conversación anterior
-claude --resume
-
-# Continuar desde la última sesión
-claude --continue
+# Ya dentro de la sesión, simplemente escribe:
+> Explica la estructura de este proyecto
+> ¿Qué hace la función authenticateUser?
+> Añade validación de email al formulario de registro
 ```
 
-### Comandos Slash Importantes
-
-| Comando | Función |
-|---------|---------|
-| `/help` | Mostrar ayuda completa |
-| `/model` | Cambiar modelo (Sonnet, Opus, Haiku) |
-| `/clear` | Limpiar contexto de conversación |
-| `/config` | Ver/editar configuración |
-| `/mcp` | Gestionar servidores MCP |
-| `/bug` | Reportar un bug |
-| `/cost` | Ver costo de la sesión actual |
-| `/compact` | Compactar el contexto largo |
-
-### Modos de Operación
+#### Prompt Directo (One-shot)
 
 ```bash
-# Modo normal (pide confirmación para cada acción)
+# Ejecutar un prompt y salir
+claude "Resume los cambios del último commit"
+
+# Con archivo de entrada (útil para logs)
+cat error.log | claude -p "Explica este error y sugiere solución"
+```
+
+#### Comandos Slash
+
+Dentro de la sesión interactiva:
+
+| Comando | Qué hace | Cuándo usarlo |
+|---------|----------|---------------|
+| `/help` | Muestra todos los comandos | Cuando no recuerdes algo |
+| `/model` | Cambia el modelo | Si necesitas más potencia (Opus) o velocidad (Haiku) |
+| `/clear` | Limpia el contexto | Cuando cambies de tarea |
+| `/cost` | Muestra el costo acumulado | Para controlar gastos |
+| `/compact` | Comprime el contexto | Cuando la conversación es muy larga |
+| `/mcp` | Lista servidores MCP | Para verificar integraciones |
+
+### 🎯 Práctica Guiada 1: Analizar un Proyecto
+
+Vamos a practicar con un proyecto real. Si no tienes uno a mano:
+
+```bash
+# Clonar proyecto de ejemplo
+git clone https://github.com/expressjs/express.git
+cd express
+
+# Iniciar Claude Code
 claude
 
-# Modo auto-accept (acepta ediciones de archivos automáticamente)
-claude --auto-accept
-
-# Modo YOLO - ejecuta todo sin confirmación (PELIGROSO)
-claude --dangerously-skip-permissions
+# Prueba estos prompts:
+> ¿Cuál es la estructura de este proyecto?
+> ¿Qué patrones de diseño usa?
+> Explica cómo funciona el middleware
 ```
 
-### Configuración CLAUDE.md
+**Observa cómo Claude**:
+1. Lee automáticamente los archivos relevantes
+2. Navega la estructura del proyecto
+3. Conecta conceptos entre archivos
 
-Crea un archivo `CLAUDE.md` en la raíz del proyecto para dar contexto persistente:
+---
+
+### 2.5 El Archivo CLAUDE.md: Tu Contexto Personalizado
+
+**¿Por qué es importante?**
+
+Sin contexto, Claude tiene que "adivinar" cómo es tu proyecto cada vez. Con `CLAUDE.md`, le das información permanente.
+
+#### Dónde crearlo
+
+```
+tu-proyecto/
+├── CLAUDE.md          ← Aquí (raíz del proyecto)
+├── src/
+├── tests/
+└── package.json
+```
+
+#### Estructura Recomendada
 
 ```markdown
-# Contexto del Proyecto
+# Proyecto: TaskFlow
+
+## Descripción
+Aplicación de gestión de tareas con API REST y frontend React.
 
 ## Stack Tecnológico
-- Backend: Node.js + Express
-- Frontend: React + TypeScript
-- Base de datos: PostgreSQL
-- ORM: Prisma
-
-## Convenciones de Código
-- Usar camelCase para variables y funciones
-- PascalCase para componentes y clases
-- Tests con Jest y React Testing Library
-- Commits en formato Conventional Commits
+- **Backend**: Node.js 20, Express 4.x, TypeScript 5.x
+- **Base de datos**: PostgreSQL 15 + Prisma ORM
+- **Frontend**: React 18, TailwindCSS
+- **Testing**: Jest + React Testing Library
 
 ## Estructura del Proyecto
-- /src/api - Endpoints REST
-- /src/components - Componentes React
-- /src/services - Lógica de negocio
-- /src/utils - Utilidades compartidas
+src/
+├── api/          # Controladores Express
+├── services/     # Lógica de negocio
+├── models/       # Modelos Prisma
+├── middleware/   # Auth, validación, etc.
+└── utils/        # Helpers compartidos
 
-## Comandos Útiles
-- `npm run dev` - Iniciar desarrollo
+## Convenciones de Código
+- **Nombrado**: camelCase para variables, PascalCase para clases/componentes
+- **Commits**: Conventional Commits (feat:, fix:, docs:, etc.)
+- **Branches**: feature/*, bugfix/*, hotfix/*
+
+## Comandos Principales
+- `npm run dev` - Servidor de desarrollo
 - `npm test` - Ejecutar tests
-- `npm run lint` - Verificar linting
+- `npm run lint` - Verificar estilo
 - `npm run build` - Build de producción
 
-## Notas Importantes
-- La base de datos requiere Docker: `docker-compose up -d`
-- Variables de entorno en .env.local (no commitear)
+## Reglas Específicas
+- Siempre usar TypeScript strict mode
+- Todos los endpoints deben tener tests
+- No usar `any` - buscar tipos correctos
+- Preferir composición sobre herencia
+
+## Contexto de Negocio
+- Los usuarios pueden tener máximo 100 tareas activas
+- Las tareas archivadas se eliminan después de 30 días
+- El API tiene rate limiting de 100 req/min por usuario
 ```
 
-### Comandos Personalizados
+### 💡 Tip: Evoluciona tu CLAUDE.md
 
-Crea comandos en `.claude/commands/`:
+Cada vez que expliques algo a Claude que debería "recordar", añádelo al CLAUDE.md:
+
+```bash
+# Durante una sesión
+> Las tareas usan soft-delete, nunca DELETE real
+
+# Después, añade a CLAUDE.md:
+## Notas Importantes
+- Usamos soft-delete: campo `deleted_at` en lugar de DELETE
+```
+
+---
+
+### 2.6 Comandos Personalizados
+
+Puedes crear "recetas" reutilizables en `.claude/commands/`.
+
+#### Ejemplo: Comando de Code Review
 
 ```markdown
-# .claude/commands/deploy.md
+# .claude/commands/review.md
 
-# Comando de Deploy
+# Code Review Exhaustivo
 
-Ejecuta el siguiente flujo de deployment:
+Realiza un code review del código actual con este checklist:
 
-1. Ejecutar tests: `npm test`
-2. Verificar linting: `npm run lint`
-3. Build de producción: `npm run build`
-4. Deploy a staging: `./scripts/deploy-staging.sh`
-5. Verificar health check: `curl https://staging.example.com/health`
-6. Si todo ok, deploy a producción: `./scripts/deploy-prod.sh`
+## 1. Seguridad (CRÍTICO)
+- [ ] ¿Hay inyección SQL posible?
+- [ ] ¿Se validan todos los inputs del usuario?
+- [ ] ¿Los secretos están en variables de entorno?
+- [ ] ¿Se sanitiza output para prevenir XSS?
 
-Confirma cada paso antes de continuar.
+## 2. Performance
+- [ ] ¿Hay consultas N+1?
+- [ ] ¿Se usa paginación para listas grandes?
+- [ ] ¿Hay operaciones bloqueantes en async?
+
+## 3. Calidad
+- [ ] ¿Hay código duplicado?
+- [ ] ¿Los nombres son descriptivos?
+- [ ] ¿Las funciones tienen una sola responsabilidad?
+
+## 4. Testing
+- [ ] ¿Hay tests para los casos principales?
+- [ ] ¿Se testean los edge cases?
+
+## Formato de Salida
+Para cada problema:
+- **Archivo:línea**: descripción
+- **Severidad**: CRÍTICO | ALTO | MEDIO | BAJO
+- **Sugerencia**: cómo arreglarlo
 ```
 
-Uso: `/project:deploy`
-
-### Configuración Avanzada
-
-```json
-// ~/.claude/settings.json
-{
-  "model": "claude-sonnet-4-5-20250929",
-  "permissions": {
-    "allow_file_write": true,
-    "allow_shell_commands": true,
-    "require_confirmation": true
-  },
-  "mcpServers": {
-    // Servidores MCP configurados
-  },
-  "memory": {
-    "enabled": true,
-    "path": "~/.claude/memory"
-  }
-}
+**Uso**:
+```bash
+claude
+> /project:review
 ```
+
+#### Ejemplo: Comando de Nuevo Endpoint
+
+```markdown
+# .claude/commands/new-endpoint.md
+
+# Crear Nuevo Endpoint REST
+
+Crea un nuevo endpoint siguiendo nuestras convenciones:
+
+## Parámetros necesarios
+- **Recurso**: $ARGUMENTS (ej: "users", "tasks")
+
+## Archivos a crear
+1. `src/api/{recurso}.controller.ts` - Controlador
+2. `src/services/{recurso}.service.ts` - Servicio
+3. `tests/{recurso}.test.ts` - Tests
+
+## Plantilla de Controlador
+- Usar decoradores de validación
+- Manejar errores con try/catch
+- Documentar con JSDoc
+
+## Plantilla de Test
+- Mínimo 5 tests: CRUD + error case
+- Usar factories para datos de prueba
+
+Genera el código siguiendo estas pautas.
+```
+
+**Uso**:
+```bash
+claude
+> /project:new-endpoint tasks
+```
+
+---
+
+### 📍 Checkpoint 2
+
+Antes de pasar a Gemini CLI, verifica:
+- [ ] Puedes crear y editar un archivo CLAUDE.md
+- [ ] Entiendes los tres modos de operación
+- [ ] Has probado al menos 3 comandos slash
+- [ ] Puedes crear un comando personalizado básico
 
 ---
 
 ## 3. Gemini CLI (Google)
 
-### Descripción
-Gemini CLI es un agente de IA open-source que trae el poder de Gemini directamente a tu terminal, con acceso gratuito generoso para usuarios con cuenta de Google.
+**⏱️ Tiempo estimado: 30 minutos**
 
-### Instalación
+### ¿Por Qué Gemini CLI?
+
+- **Gratis**: Tier gratuito muy generoso (1000 requests/día)
+- **Contexto masivo**: 1 millón de tokens (vs 200K de Claude)
+- **Open Source**: Código completamente abierto
+
+### 3.1 Instalación
 
 ```bash
-# Via npm (recomendado)
-npm install -g @anthropic-ai/gemini-cli
+# Via npm
+npm install -g @google/gemini-cli
 
-# Verificar instalación
+# Verificar
 gemini --version
 ```
 
-### Límites Gratuitos
+### 3.2 Límites del Tier Gratuito
 
-| Característica | Límite |
-|----------------|--------|
-| Requests/minuto | 60 |
-| Requests/día | 1,000 |
-| Modelo disponible | Gemini 2.5/3 Pro |
-| Ventana de contexto | 1,000,000 tokens |
+| Recurso | Límite |
+|---------|--------|
+| Requests por minuto | 60 |
+| Requests por día | 1,000 |
+| Tokens de contexto | 1,000,000 |
+| Modelo | Gemini 2.5 Pro |
 
-### Comandos Básicos
+**Cálculo práctico**: 1000 req/día ÷ 8 horas = **125 prompts/hora**. Más que suficiente para desarrollo normal.
+
+### 3.3 Comandos Básicos
 
 ```bash
-# Iniciar sesión interactiva
+# Sesión interactiva
 gemini
 
 # Prompt directo
-gemini "Resume los cambios de ayer en git"
+gemini "Analiza este proyecto"
 
-# Modo no interactivo con formato de salida
-gemini -p "Explica la arquitectura" --output-format json
-
-# Con modelo específico
-gemini -m gemini-3-pro "Analiza este código"
+# Con formato de salida
+gemini -p "Lista las dependencias" --output-format json
 ```
 
-### Comandos Slash
+### 3.4 Cuándo Elegir Gemini sobre Claude
 
-| Comando | Función |
-|---------|---------|
-| `/help` | Mostrar ayuda |
-| `/chat` | Nueva conversación |
-| `/settings` | Configuración |
-| `/model` | Seleccionar modelo |
-| `/memory list` | Ver archivos de memoria |
-| `/extensions` | Gestionar extensiones |
-| `/stats` | Estadísticas de uso |
+| Escenario | Mejor opción | Por qué |
+|-----------|--------------|---------|
+| Proyecto con muchos archivos | Gemini | Contexto de 1M tokens |
+| Análisis de monorepos | Gemini | Puede "ver" más código |
+| Presupuesto limitado | Gemini | Tier gratuito |
+| Razonamiento complejo | Claude | Mejor en lógica |
+| Código crítico/seguro | Claude | Más conservador |
 
-### Configuración
+### 🎯 Práctica Guiada 2: Comparar CLIs
 
-```json
-// ~/.gemini/settings.json
-{
-  "theme": "dark",
-  "model": "gemini-3-flash",
-  "previewFeatures": true,
-  "showStatusInTitle": true,
-  "defaultOutputFormat": "markdown",
-  "extensions": {
-    "github": true,
-    "filesystem": true
-  }
-}
-```
-
-### Archivo GEMINI.md
-
-Similar a CLAUDE.md, proporciona contexto persistente:
-
-```markdown
-# Proyecto: E-commerce API
-
-## Tecnologías
-- Python 3.11 + FastAPI
-- MongoDB con Motor (async)
-- Docker + Kubernetes
-- Redis para caché
-
-## Reglas de Código
-- Type hints obligatorios en todas las funciones
-- Docstrings en Google style
-- Tests con pytest (mínimo 80% coverage)
-- Formateo con Black + isort
-
-## Arquitectura
-- /app/routers - Endpoints FastAPI
-- /app/models - Modelos Pydantic
-- /app/services - Lógica de negocio
-- /app/repositories - Acceso a datos
-```
-
-### Extensiones (MCP)
-
-Gemini CLI soporta extensiones que son equivalentes a MCPs:
+Ejecuta el mismo prompt en ambas CLIs y compara:
 
 ```bash
-# Listar extensiones disponibles
-gemini extensions list
+# En un proyecto mediano
+cd tu-proyecto
 
-# Instalar extensión
-gemini extensions install github
+# Con Claude
+claude "Identifica los 3 mayores problemas de arquitectura"
 
-# Usar extensión en prompt
-gemini "@github lista los PRs abiertos"
+# Con Gemini
+gemini "Identifica los 3 mayores problemas de arquitectura"
 ```
+
+**Observa**:
+- ¿Cuál da respuestas más detalladas?
+- ¿Cuál es más rápido?
+- ¿Las recomendaciones son similares?
 
 ---
 
 ## 4. Codex CLI (OpenAI)
 
-### Descripción
-Codex CLI es un agente de coding de OpenAI que corre localmente y se conecta con el ecosistema Codex cloud para tareas paralelas.
+**⏱️ Tiempo estimado: 20 minutos**
 
-### Instalación
+### ¿Por Qué Codex CLI?
+
+- **Integración ChatGPT**: Si ya pagas ChatGPT Plus, sin costo adicional
+- **Cloud Tasks**: Puede ejecutar tareas en paralelo en la nube
+- **Code Review integrado**: Comando específico para revisiones
+
+### 4.1 Instalación
 
 ```bash
-# Via npm
 npm install -g @openai/codex
-
-# Via Homebrew (macOS)
-brew install --cask codex
-
-# Verificar
 codex --version
 ```
 
-### Autenticación
+### 4.2 Autenticación
 
 ```bash
-# Iniciar y autenticar con ChatGPT
 codex
 # Seleccionar "Sign in with ChatGPT"
-
-# O usar API key
+# O usar API key:
 export OPENAI_API_KEY="sk-..."
 ```
 
-### Comandos Básicos
+### 4.3 Modos de Aprobación
 
 ```bash
-# Sesión interactiva
-codex
-
-# Prompt inicial
-codex "Explain this codebase to me"
-
-# Resumir sesión anterior
-codex resume
-
-# Ejecutar script automatizado
-codex exec "Run tests and fix failures"
-
-# Con modelo específico
-codex --model gpt-5.2-codex "Optimiza este código"
-```
-
-### Modos de Aprobación
-
-```bash
-# Suggest - solo sugiere, no ejecuta nada
+# Solo sugerencias (no ejecuta nada)
 codex --approval-mode suggest
 
-# Auto-edit - edita archivos automáticamente, pide confirmación para comandos
+# Auto-edita archivos, confirma comandos
 codex --approval-mode auto-edit
 
-# Full-auto - todo automático (PELIGROSO)
+# Todo automático
 codex --approval-mode full-auto
 ```
 
-### Code Review Integrado
+### 4.4 Feature Única: Code Review
 
 ```bash
-# Revisión de código antes de commit
+# Review de cambios actuales
 codex review
 
-# Revisión de commit específico
-codex review HEAD~1
+# Review de commit específico
+codex review HEAD~3
 
-# Revisión de PR
+# Review de PR de GitHub
 codex review --pr 123
 ```
 
-### Configuración
-
-```toml
-# ~/.codex/config.toml
-[model]
-default = "gpt-5.2-codex"
-
-[features]
-web_search_request = true
-code_execution = true
-
-[sandbox_workspace_write]
-network_access = true
-
-[mcp]
-servers = ["github", "linear"]
-```
-
-### Tareas en la Nube
-
-Codex permite ejecutar tareas en paralelo en la nube:
+### 4.5 Feature Única: Cloud Tasks
 
 ```bash
-# Iniciar tarea en background
+# Ejecutar tests en la nube (paralelo)
 codex cloud "Run full test suite" --background
 
 # Ver tareas activas
 codex cloud list
 
-# Ver resultado de tarea
+# Ver resultado
 codex cloud result <task-id>
 ```
 
 ---
 
-## 5. Comparativa de CLIs
+## 5. Comparativa Final: ¿Cuál Elegir?
 
-### Tabla Comparativa General
+**⏱️ Tiempo estimado: 10 minutos**
 
-| Característica | Claude Code | Gemini CLI | Codex CLI |
-|----------------|-------------|------------|-----------|
-| **Precio** | API pay-as-you-go | Gratis (con límites) | Suscripción ChatGPT |
-| **Open Source** | Parcial | Completo | Parcial |
-| **MCP Support** | Cliente y servidor | Cliente | Cliente |
-| **IDE Integration** | VS Code, JetBrains | VS Code | VS Code, Cursor |
-| **Cloud Tasks** | No | No | Sí (paralelas) |
-| **Modelo por defecto** | Claude Sonnet 4.5 | Gemini 3 Flash | GPT-5.2-Codex |
-| **Contexto máximo** | 200K tokens | 1M tokens | 128K tokens |
+### Tabla de Decisión
 
-### Cuándo Usar Cada Uno
+| Si necesitas... | Usa | Razón |
+|-----------------|-----|-------|
+| Mejor razonamiento | Claude Code | Superior en lógica compleja |
+| Máximo contexto | Gemini CLI | 1M tokens |
+| Costo $0 | Gemini CLI | Tier gratuito generoso |
+| Integración ChatGPT | Codex CLI | Mismo ecosistema |
+| Tareas paralelas | Codex CLI | Cloud tasks |
+| MCP avanzado | Claude Code | Mejor soporte |
 
-| Escenario | Mejor Opción | Razón |
-|-----------|--------------|-------|
-| Proyectos grandes (muchos archivos) | Gemini CLI | Ventana de 1M tokens |
-| Coding asistido detallado | Claude Code | Mejor razonamiento |
-| Integración con OpenAI ecosystem | Codex CLI | Nativo con ChatGPT |
-| Presupuesto limitado | Gemini CLI | Tier gratuito generoso |
-| Tareas paralelas/background | Codex CLI | Cloud tasks |
-| Mejor code review | Claude Code | Análisis profundo |
+### Recomendación del Curso
 
-### Comandos Equivalentes
+Para seguir este curso, recomendamos **Claude Code** porque:
+1. Los módulos 4-5 usan MCP extensivamente
+2. El razonamiento superior ayuda en arquitectura (módulo 6)
+3. Es la herramienta principal del instructor
 
-| Acción | Claude Code | Gemini CLI | Codex CLI |
-|--------|-------------|------------|-----------|
-| Iniciar | `claude` | `gemini` | `codex` |
-| Prompt directo | `claude "..."` | `gemini "..."` | `codex "..."` |
-| Cambiar modelo | `/model` | `/model` | `--model` |
-| Limpiar contexto | `/clear` | `/chat` | `/clear` |
-| Ver ayuda | `/help` | `/help` | `--help` |
-| Configuración | `/config` | `/settings` | `config.toml` |
+Pero **cualquiera funciona** para los ejercicios básicos.
 
 ---
 
 ## 6. Ejercicios Prácticos
 
-### Ejercicio 1: Configuración Inicial
+### Ejercicio 1: Setup Completo (30 min)
+**Nivel: Básico**
 
-1. Instala Claude Code o Gemini CLI
-2. Crea un proyecto de ejemplo
-3. Configura el archivo CLAUDE.md/GEMINI.md
-4. Ejecuta comandos básicos
+1. Instala Claude Code (o Gemini CLI)
+2. Clona el proyecto de ejemplo: `git clone https://github.com/your/taskflow-starter`
+3. Crea un archivo CLAUDE.md con la información del proyecto
+4. Ejecuta: `claude "Explica este codebase"`
+5. Verifica que entiende la estructura
 
-### Ejercicio 2: Análisis de Codebase
+**Criterio de éxito**: Claude describe correctamente las carpetas y tecnologías.
 
+### Ejercicio 2: Refactoring Asistido (45 min)
+**Nivel: Intermedio**
+
+1. Identifica un archivo con código duplicado
+2. Pide a Claude que lo detecte: `"Encuentra código duplicado en src/"`
+3. Pide la refactorización: `"Refactoriza para eliminar la duplicación"`
+4. Revisa los cambios antes de aceptar
+5. Ejecuta tests para verificar
+
+**Criterio de éxito**: Los tests siguen pasando después del refactor.
+
+### Ejercicio 3: Comando Personalizado (30 min)
+**Nivel: Intermedio**
+
+Crea un comando `/project:security-check` que:
+1. Busque secrets hardcodeados
+2. Verifique dependencias con vulnerabilidades
+3. Revise configuración de CORS
+4. Genere un informe en formato markdown
+
+**Criterio de éxito**: El comando genera un informe útil.
+
+### Ejercicio 4: Comparativa de CLIs (20 min)
+**Nivel: Básico**
+
+1. Instala Gemini CLI además de Claude Code
+2. Ejecuta el mismo prompt en ambas:
+   ```
+   "Analiza src/services/ y sugiere mejoras de performance"
+   ```
+3. Documenta las diferencias en:
+   - Tiempo de respuesta
+   - Profundidad del análisis
+   - Sugerencias concretas
+
+**Criterio de éxito**: Tienes una opinión informada sobre cuál prefieres.
+
+---
+
+## 7. Troubleshooting
+
+### Problemas Comunes
+
+#### "Rate limit exceeded"
+
+**Causa**: Demasiados requests en poco tiempo.
+
+**Solución**:
 ```bash
-# Con Claude Code
-claude "Analiza este proyecto y dame:
-1. Estructura de directorios explicada
-2. Tecnologías detectadas
-3. Patrones de arquitectura usados
-4. Posibles mejoras"
+# Esperar unos minutos, o
+# Usar modo más eficiente (menos requests):
+claude --model haiku  # Más rápido, menos límites
 ```
 
-### Ejercicio 3: Refactoring Asistido
+#### "Context length exceeded"
 
+**Causa**: El proyecto es muy grande para el contexto.
+
+**Solución**:
 ```bash
-# Identificar código duplicado
-claude "Encuentra código duplicado en src/ y sugiere abstracciones"
+# Usar /compact
+claude
+> /compact
 
-# Aplicar refactoring
-claude "Aplica el refactoring sugerido, asegurándote de mantener los tests pasando"
+# O usar Gemini para proyectos grandes
+gemini "Analiza el proyecto"  # 1M tokens de contexto
 ```
 
-### Ejercicio 4: Generación de Tests
+#### "Command not found" después de instalar
 
+**Solución**:
 ```bash
-# Generar tests para un módulo
-claude "Genera tests unitarios para src/services/auth.ts
-con cobertura mínima del 80%"
+# Verificar instalación global
+npm list -g
 
-# Verificar tests
-claude "Ejecuta los tests y corrige cualquier fallo"
+# Reinstalar
+npm uninstall -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code
+
+# Reiniciar terminal
 ```
 
-### Ejercicio 5: Debugging
+---
 
-```bash
-# Analizar un error
-cat logs/error.log | claude -p "Analiza este error y sugiere soluciones"
+## Resumen del Módulo
 
-# Fix automático
-claude "Aplica el fix para el error anterior y verifica que funcione"
-```
+### Lo que aprendiste
 
-### Ejercicio 6: Documentación
+1. **Por qué CLIs > Chat web**: Integración, contexto, automatización
+2. **Claude Code**: Instalación, modos, CLAUDE.md, comandos
+3. **Gemini CLI**: Tier gratuito, contexto masivo
+4. **Codex CLI**: Cloud tasks, code review integrado
+5. **Cuándo usar cada una**: Tabla de decisión
 
-```bash
-# Generar README
-claude "Genera un README.md completo para este proyecto incluyendo:
-- Descripción
-- Requisitos
-- Instalación
-- Uso
-- API Reference
-- Contributing"
-```
+### Preparación para el Módulo 3
+
+En el próximo módulo aprenderás:
+- Cómo funcionan las ventanas de contexto internamente
+- Model Context Protocol (MCP) en profundidad
+- Subagentes y sistemas multi-agente
+- Hooks para automatización
+
+**Tarea previa**: Ten Claude Code instalado y funcionando. Lo usaremos intensivamente.
 
 ---
 
 ## Recursos Adicionales
 
-- [Claude Code Docs](https://docs.anthropic.com/claude-code)
+- [Documentación oficial Claude Code](https://docs.anthropic.com/claude-code)
 - [Gemini CLI GitHub](https://github.com/google-gemini/gemini-cli)
 - [Codex CLI Docs](https://platform.openai.com/docs/codex)
-- [Awesome AI CLI Tools](https://github.com/awesome-ai/cli-tools)
-
----
-
-## Próximo Módulo
-
-En el **Módulo 3: Fundamentos de Software de IA** aprenderás:
-- Ventanas de contexto y su gestión
-- Model Context Protocol (MCP) en profundidad
-- Subagentes y sistemas multi-agente
-- Hooks y automatización
+- [Comparativa actualizada de CLIs](https://github.com/anthropics/claude-code/wiki/CLI-Comparison)

@@ -1,745 +1,917 @@
 # Módulo 3: Fundamentos de Software de IA para Desarrollo
 
-## Índice
-1. [Ventanas de Contexto](#1-ventanas-de-contexto)
-2. [Model Context Protocol (MCP)](#2-model-context-protocol-mcp)
-3. [Subagentes y Multi-Agent Systems](#3-subagentes-y-multi-agent-systems)
-4. [Hooks y Automatización](#4-hooks-y-automatización)
-5. [Configuración Avanzada](#5-configuración-avanzada)
-6. [Ejercicios Prácticos](#6-ejercicios-prácticos)
+## Información del Módulo
+
+| | |
+|---|---|
+| **Duración estimada** | 4-5 horas |
+| **Nivel** | Intermedio |
+| **Prerrequisitos** | Módulo 2 completado, Claude Code funcionando |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar este módulo, serás capaz de:
+
+1. ✅ Entender qué son las ventanas de contexto y gestionar proyectos grandes
+2. ✅ Explicar la arquitectura de Model Context Protocol (MCP)
+3. ✅ Configurar servidores MCP básicos en Claude Code
+4. ✅ Comprender cuándo y cómo usar subagentes
+5. ✅ Crear hooks para automatizar tareas repetitivas
+
+---
+
+## Continuación del Proyecto: TaskFlow
+
+En este módulo, expandiremos TaskFlow con capacidades de IA:
+
+```
+TaskFlow/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+├── .claude/
+│   ├── commands/       ← Comandos personalizados (Módulo 2)
+│   └── hooks.json      ← NUEVO: Automatización
+├── mcp-config.json     ← NUEVO: Configuración MCP
+└── CLAUDE.md
+```
+
+**Objetivo del módulo**: Configurar MCPs para que Claude pueda acceder a nuestra base de datos y ejecutar comandos de forma segura.
 
 ---
 
 ## 1. Ventanas de Contexto
 
-### ¿Qué es la Ventana de Contexto?
+**⏱️ Tiempo estimado: 45 minutos**
 
-La ventana de contexto es la cantidad máxima de texto (medida en tokens) que un modelo puede procesar en una sola interacción. Incluye tanto el input (tu prompt + historial) como el output (respuesta del modelo).
+### 1.1 ¿Qué es la Ventana de Contexto?
+
+Imagina que estás hablando con alguien que tiene memoria limitada. Solo puede "recordar" las últimas N palabras de la conversación. Eso es esencialmente una ventana de contexto.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  VENTANA DE CONTEXTO                     │
-│  ┌──────────────────┐  ┌───────────────────────────────┐│
-│  │  INPUT TOKENS    │  │       OUTPUT TOKENS           ││
-│  │  - System prompt │  │       (Respuesta)             ││
-│  │  - Historial     │  │                               ││
-│  │  - Tu mensaje    │  │                               ││
-│  └──────────────────┘  └───────────────────────────────┘│
-│         ◄─────────── Total: max_context_tokens ────────►│
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                  VENTANA DE CONTEXTO                         │
+│                                                              │
+│  ┌────────────────────┐   ┌────────────────────────────────┐│
+│  │    TU INPUT        │ + │      RESPUESTA DEL LLM        ││
+│  │  - System prompt   │   │                                ││
+│  │  - Historial       │   │                                ││
+│  │  - Tu mensaje      │   │                                ││
+│  │  - Archivos leídos │   │                                ││
+│  └────────────────────┘   └────────────────────────────────┘│
+│                                                              │
+│  ◄───────────── Máximo: X tokens ─────────────────────────► │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Tamaños por Modelo (2025)
+### 💡 Concepto Clave: Tokens
 
-| Modelo | Ventana de Contexto | Equivalente Aproximado |
-|--------|---------------------|------------------------|
-| Gemini 3 | 1,000,000 tokens | ~750,000 palabras |
-| Claude 4.5 | 200,000 tokens | ~150,000 palabras |
-| GPT-5.2 | 128,000 tokens | ~96,000 palabras |
-| DeepSeek-V3 | 128,000 tokens | ~96,000 palabras |
+> Un **token** no es una palabra. Es un fragmento de texto que el modelo procesa. En español, una palabra típica = 1.5-2 tokens. La palabra "autenticación" = 3 tokens.
 
-**Referencia**: 100K tokens ≈ 75,000 palabras ≈ 300 páginas
+**Regla práctica**: 100 tokens ≈ 75 palabras ≈ 1/4 de página A4
 
-### ¿Por qué importa la Ventana de Contexto?
+### 1.2 Tamaños por Modelo (2025)
 
-1. **Proyectos grandes**: Más contexto = más archivos que puede "ver" simultáneamente
-2. **Conversaciones largas**: Sin truncar historial
-3. **Documentos completos**: Análisis de libros, codebases enteros
-4. **Menos fragmentación**: Menos necesidad de dividir tareas
+| Modelo | Ventana | Equivalente | Ejemplo de Uso |
+|--------|---------|-------------|----------------|
+| **Gemini 3** | 1M tokens | ~3,000 páginas | Analizar monorepos completos |
+| **Claude 4.5** | 200K tokens | ~600 páginas | Proyectos medianos completos |
+| **GPT-5.2** | 128K tokens | ~400 páginas | Proyectos pequeños/medianos |
 
-### Gestión Eficiente del Contexto
+### 1.3 ¿Por Qué Importa Esto?
 
-#### Estrategia 1: Compresión de Contexto
+**Escenario real**: Tu proyecto TaskFlow tiene:
+- 50 archivos TypeScript
+- 10,000 líneas de código
+- Documentación en 5 archivos markdown
 
-```python
-def compress_context(messages: list, max_tokens: int = 50000) -> list:
-    """
-    Estrategia: Mantener mensajes recientes completos,
-    resumir los antiguos.
-    """
-    recent = messages[-10:]  # Últimos 10 mensajes completos
-    old = messages[:-10]
+**Pregunta**: ¿Puede Claude "ver" todo esto a la vez?
 
-    if old:
-        summary = llm.summarize(old)
-        return [
-            {"role": "system", "content": f"Resumen de conversación previa: {summary}"}
-        ] + recent
+```
+Cálculo aproximado:
+- 10,000 líneas × 10 tokens/línea = 100,000 tokens
+- Documentación: ~5,000 tokens
+- System prompt + CLAUDE.md: ~2,000 tokens
+- Tu mensaje: ~500 tokens
+─────────────────────────────────────────────────
+Total: ~107,500 tokens
 
-    return recent
+Claude 4.5 (200K): ✅ Cabe completo
+GPT-5.2 (128K): ⚠️ Justo, sin margen
 ```
 
-#### Estrategia 2: Context Pruning
+### 📍 Checkpoint 1
 
-```python
-def prune_context(messages: list, relevance_threshold: float = 0.5) -> list:
-    """
-    Elimina mensajes menos relevantes para la tarea actual.
-    """
-    # Calcular relevancia de cada mensaje respecto a la tarea
-    scored_messages = [
-        (msg, calculate_relevance(msg, current_task))
-        for msg in messages
-    ]
+Antes de continuar, responde:
+- [ ] ¿Cuántos tokens tiene aproximadamente tu proyecto actual?
+- [ ] ¿Qué modelo necesitarías para analizarlo completo?
 
-    # Mantener solo mensajes relevantes
-    return [msg for msg, score in scored_messages if score >= relevance_threshold]
+---
+
+### 1.4 El Problema: Contexto Lleno
+
+Cuando el contexto se llena, el modelo "olvida" información antigua. Esto causa:
+
+1. **Pérdida de instrucciones**: Olvida reglas del CLAUDE.md
+2. **Código inconsistente**: Olvida decisiones anteriores
+3. **Errores de referencia**: "¿Qué archivo era ese?"
+
+### ⚠️ Señales de Alerta
+
+```
+Síntoma: Claude empieza a "olvidar" lo que le dijiste hace 5 mensajes
+Síntoma: Sugiere código que contradice decisiones anteriores
+Síntoma: Pregunta cosas que ya habías aclarado
 ```
 
-#### Estrategia 3: Sliding Window
+### 1.5 Estrategias de Gestión
 
-```python
-def sliding_window(messages: list, window_size: int = 20) -> list:
-    """
-    Mantiene solo los últimos N mensajes.
-    Simple pero efectivo para conversaciones largas.
-    """
-    if len(messages) > window_size:
-        # Guardar system prompt + últimos mensajes
-        system = [m for m in messages if m["role"] == "system"]
-        recent = messages[-window_size:]
-        return system + recent
-    return messages
-```
+#### Estrategia 1: Compactación Manual
 
-### Context Compaction en Herramientas CLI
+Cuando la conversación es muy larga:
 
-**Codex CLI** implementa "compaction" automático:
-```
-Sesión larga → Detecta límite cercano → Resume contexto → Continúa con contexto fresco
-```
-
-**Claude Code** ofrece el comando `/compact`:
 ```bash
-# Compactar manualmente cuando el contexto es muy largo
-/compact
+claude
+> /compact
+# Claude resume la conversación y libera espacio
+```
+
+**Cuándo usar**: Cada 30-50 intercambios o cuando notes "olvidos".
+
+#### Estrategia 2: Sesiones Enfocadas
+
+En lugar de una sesión larga para todo:
+
+```bash
+# Sesión 1: Backend
+claude "Implementa el endpoint de autenticación"
+# Terminar y cerrar
+
+# Sesión 2: Frontend
+claude "Implementa el formulario de login"
+# Nueva sesión, contexto fresco
+```
+
+**Por qué funciona**: Cada sesión tiene contexto completo para su tarea.
+
+#### Estrategia 3: Documentar Decisiones
+
+Mantén un archivo de decisiones que Claude siempre lee:
+
+```markdown
+# decisions.md (incluir en CLAUDE.md)
+
+## Decisiones Arquitectónicas
+
+### 2025-01-05: Autenticación
+- Elegimos JWT sobre sessions
+- Refresh tokens con rotación
+- Tokens expiran en 15 minutos
+
+### 2025-01-06: Base de Datos
+- Soft-delete para todos los modelos
+- Campo `deleted_at` nullable
+- Índice parcial para queries de no-eliminados
+```
+
+**Por qué funciona**: El contexto "recuerda" decisiones sin que las repitas.
+
+---
+
+### 🎯 Práctica Guiada 1: Medir tu Contexto
+
+1. Abre Claude Code en tu proyecto
+2. Ejecuta varios prompts de análisis
+3. Usa `/cost` para ver tokens consumidos
+4. Cuando llegues a ~50% del contexto, usa `/compact`
+5. Observa cómo continúa la conversación
+
+```bash
+claude
+> Analiza la estructura del proyecto
+> Explica el flujo de autenticación
+> ¿Qué mejoras de performance sugieres?
+> /cost  # Ver tokens usados
+> /compact  # Si es necesario
 ```
 
 ---
 
 ## 2. Model Context Protocol (MCP)
 
-### ¿Qué es MCP?
+**⏱️ Tiempo estimado: 90 minutos**
 
-MCP (Model Context Protocol) es un **protocolo abierto** que permite la integración estandarizada entre aplicaciones LLM y fuentes de datos/herramientas externas.
+### 2.1 El Problema que Resuelve MCP
 
-Piensa en MCP como un "USB para LLMs": una interfaz estándar que permite conectar cualquier herramienta a cualquier modelo.
+Sin MCP, la integración de LLMs con herramientas externas era un desastre:
 
-### Arquitectura MCP
+```
+┌─────────────────────────────────────────────────────────────┐
+│  ANTES DE MCP: Cada integración es custom                    │
+│                                                              │
+│  Claude ──custom code──► GitHub                              │
+│  Claude ──custom code──► Slack                               │
+│  Claude ──custom code──► PostgreSQL                          │
+│  Claude ──custom code──► Tu API                              │
+│                                                              │
+│  Problema: N integraciones × M LLMs = N×M implementaciones   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  CON MCP: Protocolo estándar                                 │
+│                                                              │
+│  Claude  ─┐                   ┌─► GitHub MCP                 │
+│  GPT     ─┼──► MCP Protocol ──┼─► Slack MCP                  │
+│  Gemini  ─┘                   ├─► PostgreSQL MCP             │
+│                               └─► Tu API MCP                 │
+│                                                              │
+│  Ventaja: M LLMs + N herramientas = M + N implementaciones   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 💡 Concepto Clave: MCP es como USB para LLMs
+
+> Antes de USB, cada dispositivo tenía su conector propietario. USB estandarizó la conexión. **MCP hace lo mismo para LLMs**: cualquier herramienta MCP funciona con cualquier cliente MCP.
+
+### 2.2 Arquitectura MCP
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│                        CLIENTE MCP                             │
-│  (Claude Desktop, Claude Code, Gemini CLI, tu aplicación)     │
-└──────────────────────────┬────────────────────────────────────┘
-                           │
-                           │ JSON-RPC sobre stdio/HTTP
-                           │
-┌──────────────────────────▼────────────────────────────────────┐
-│                      SERVIDOR MCP                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
-│  │  Resources  │  │    Tools    │  │   Prompts   │            │
-│  │  (lectura)  │  │ (ejecución) │  │ (plantillas)│            │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘            │
-└─────────┼────────────────┼────────────────┼───────────────────┘
-          │                │                │
-          ▼                ▼                ▼
-    ┌──────────┐    ┌──────────┐    ┌──────────┐
-    │ Database │    │   API    │    │   File   │
-    │          │    │ Externa  │    │  System  │
-    └──────────┘    └──────────┘    └──────────┘
+│                     TU COMPUTADORA                             │
+│                                                                │
+│  ┌─────────────────┐         ┌─────────────────────────────┐  │
+│  │  Claude Code    │         │     Servidor MCP            │  │
+│  │  (Cliente MCP)  │◄──────►│     (proceso separado)      │  │
+│  │                 │ JSON-   │  ┌─────┐ ┌─────┐ ┌───────┐  │  │
+│  │                 │  RPC    │  │Tools│ │Rsrc │ │Prompts│  │  │
+│  └─────────────────┘         │  └──┬──┘ └──┬──┘ └───┬───┘  │  │
+│                              │     │       │       │       │  │
+│                              └─────┼───────┼───────┼───────┘  │
+│                                    │       │       │          │
+│                                    ▼       ▼       ▼          │
+│                              ┌─────────────────────────────┐  │
+│                              │    Sistemas Externos        │  │
+│                              │  (DB, APIs, Filesystem)     │  │
+│                              └─────────────────────────────┘  │
+└───────────────────────────────────────────────────────────────┘
 ```
 
-### Componentes MCP
+### 2.3 Los Tres Componentes de MCP
 
-#### 1. Resources (Recursos)
-Datos de **solo lectura** que el LLM puede consultar.
+#### 1. Resources (Recursos) - Solo Lectura
+
+Los recursos son **datos que el LLM puede consultar** pero no modificar.
 
 ```json
 {
-  "uri": "file:///proyecto/README.md",
-  "name": "README del proyecto",
-  "mimeType": "text/markdown"
+  "uri": "db://tasks/pending",
+  "name": "Tareas pendientes",
+  "mimeType": "application/json"
 }
 ```
 
-Ejemplos:
-- Contenido de archivos
-- Resultados de consultas SQL
-- Documentación de APIs
+**Ejemplos de Resources**:
+- Contenido de un archivo
+- Resultado de una query SQL (SELECT)
+- Estado actual de la aplicación
 - Configuración del sistema
 
-#### 2. Tools (Herramientas)
-Funciones **ejecutables** que el LLM puede invocar.
+**Analogía**: Como un informe que puedes leer pero no editar.
+
+#### 2. Tools (Herramientas) - Ejecución
+
+Las herramientas son **funciones que el LLM puede invocar**.
 
 ```json
 {
-  "name": "crear_issue",
-  "description": "Crea un issue en GitHub",
+  "name": "crear_tarea",
+  "description": "Crea una nueva tarea en el sistema",
   "inputSchema": {
     "type": "object",
     "properties": {
       "titulo": {"type": "string"},
-      "descripcion": {"type": "string"},
-      "etiquetas": {"type": "array", "items": {"type": "string"}}
+      "prioridad": {"type": "string", "enum": ["alta", "media", "baja"]}
     },
     "required": ["titulo"]
   }
 }
 ```
 
-Ejemplos:
-- Ejecutar comandos shell
+**Ejemplos de Tools**:
+- Crear/actualizar/eliminar registros
+- Enviar emails o notificaciones
+- Ejecutar comandos del sistema
 - Llamar a APIs externas
-- Escribir archivos
-- Enviar notificaciones
 
-#### 3. Prompts (Plantillas)
-Templates reutilizables para tareas comunes.
+**Analogía**: Como botones de acción en una interfaz.
+
+#### 3. Prompts (Plantillas) - Reutilización
+
+Los prompts son **templates predefinidos** para tareas comunes.
 
 ```json
 {
   "name": "code-review",
-  "description": "Realiza code review de un archivo",
+  "description": "Revisa código siguiendo nuestras guías",
   "arguments": [
-    {"name": "file", "description": "Ruta del archivo a revisar"}
+    {"name": "archivo", "description": "Ruta al archivo a revisar"}
   ]
 }
 ```
 
-### Transportes Soportados
+**Ejemplos de Prompts**:
+- Template de code review
+- Formato de commit message
+- Estructura de documentación
 
-| Transporte | Uso | Ejemplo |
-|------------|-----|---------|
-| **stdio** | Servidores locales | Procesos en tu máquina |
-| **HTTP/SSE** | Servidores remotos | APIs en la nube |
-| **Streamable HTTP** | Nuevo estándar | Bidireccional eficiente |
+**Analogía**: Como plantillas de documentos que rellenas.
 
-### Configuración Básica de MCP
+### 📍 Checkpoint 2
 
-#### Para Claude Code / Claude Desktop
+Clasifica estos elementos en Resource, Tool, o Prompt:
+- [ ] Leer la lista de usuarios de la base de datos → _______
+- [ ] Enviar un mensaje a Slack → _______
+- [ ] Template para escribir tests → _______
+- [ ] Crear un nuevo issue en GitHub → _______
+
+<details>
+<summary>Ver respuestas</summary>
+
+- Leer usuarios → **Resource** (solo lectura)
+- Enviar a Slack → **Tool** (acción)
+- Template de tests → **Prompt** (plantilla)
+- Crear issue → **Tool** (acción)
+
+</details>
+
+---
+
+### 2.4 Configurar tu Primer MCP
+
+Vamos a configurar el MCP de filesystem para que Claude pueda acceder a archivos de forma segura.
+
+#### Paso 1: Localizar la configuración
+
+```bash
+# Windows
+%APPDATA%\Claude\claude_desktop_config.json
+
+# macOS
+~/Library/Application Support/Claude/claude_desktop_config.json
+
+# Linux
+~/.config/claude/claude_desktop_config.json
+
+# O para Claude Code
+~/.claude/settings.json
+```
+
+#### Paso 2: Añadir el servidor
 
 ```json
-// ~/.claude/settings.json o claude_desktop_config.json
 {
   "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_TOKEN": "ghp_xxxxxxxxxxxx"
-      }
-    },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/dir"]
-    },
-    "postgres": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres"],
-      "env": {
-        "DATABASE_URL": "postgresql://user:pass@localhost:5432/db"
-      }
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:/Users/TuUsuario/Proyectos/TaskFlow"
+      ]
     }
   }
 }
 ```
 
-#### Para Servidores Remotos (HTTP)
+#### Paso 3: Verificar
 
-```json
+```bash
+claude
+> /mcp
+# Debería mostrar: filesystem (connected)
+
+> Lee el archivo src/services/auth.ts usando el MCP de filesystem
+```
+
+### ⚠️ Error Común: "MCP server not found"
+
+**Causa**: npx no puede encontrar el paquete.
+
+**Solución**:
+```bash
+# Instalar globalmente primero
+npm install -g @modelcontextprotocol/server-filesystem
+
+# Luego en la config, usar la ruta completa:
 {
-  "mcpServers": {
-    "aws-knowledge": {
-      "url": "https://knowledge-mcp.global.api.aws",
-      "type": "http"
-    },
-    "cloudflare-workers": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://workers.mcp.cloudflare.com/mcp"]
-    }
-  }
+  "command": "node",
+  "args": [
+    "C:/Users/TuUsuario/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js",
+    "C:/Users/TuUsuario/Proyectos/TaskFlow"
+  ]
 }
-```
-
-### Flujo de Comunicación MCP
-
-```
-1. Usuario: "Crea un issue en GitHub sobre el bug de login"
-
-2. Cliente MCP (Claude Code):
-   - Identifica que necesita la herramienta "crear_issue"
-   - Prepara los parámetros: {titulo: "Bug de login", descripcion: "..."}
-
-3. Servidor MCP (GitHub):
-   - Recibe la solicitud JSON-RPC
-   - Ejecuta: gh issue create --title "Bug de login" --body "..."
-   - Devuelve: {success: true, issue_number: 123, url: "..."}
-
-4. Cliente MCP:
-   - Recibe respuesta
-   - LLM genera: "He creado el issue #123. Puedes verlo en: ..."
 ```
 
 ---
 
-## 3. Subagentes y Multi-Agent Systems
+### 2.5 Flujo de Comunicación MCP
 
-### Concepto
-
-Los **subagentes** permiten delegar tareas especializadas a agentes secundarios mientras el agente principal coordina el trabajo.
+Entender este flujo te ayudará a debuggear problemas:
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│                  AGENTE PRINCIPAL                           │
-│                  (Orquestador)                              │
-└──────────────────────┬─────────────────────────────────────┘
-                       │
-       ┌───────────────┼───────────────┐
-       ▼               ▼               ▼
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│  Subagente   │ │  Subagente   │ │  Subagente   │
-│  Frontend    │ │  Backend     │ │  Testing     │
-│  (React)     │ │  (Node.js)   │ │  (Jest)      │
-└──────────────┘ └──────────────┘ └──────────────┘
+Usuario: "Crea una tarea llamada 'Revisar PR #42'"
+
+1. Claude analiza el mensaje
+2. Claude identifica que necesita la tool "crear_tarea"
+3. Claude envía al servidor MCP:
+   {
+     "method": "tools/call",
+     "params": {
+       "name": "crear_tarea",
+       "arguments": {"titulo": "Revisar PR #42"}
+     }
+   }
+
+4. El servidor ejecuta la función
+5. El servidor responde:
+   {
+     "result": {
+       "content": [{"type": "text", "text": "Tarea #123 creada"}]
+     }
+   }
+
+6. Claude incorpora el resultado en su respuesta:
+   "He creado la tarea #123 'Revisar PR #42'"
 ```
 
-### Casos de Uso
+### 🎯 Práctica Guiada 2: Configurar MCP de Git
 
-1. **Desarrollo paralelo**: Frontend y backend simultáneo
-2. **Testing mientras coding**: Tests se escriben junto al código
-3. **Documentación continua**: Docs se actualizan automáticamente
-4. **Code review cruzado**: Un subagente revisa lo que otro escribió
+1. Añade el MCP de Git a tu configuración:
 
-### Ejemplo en Claude Code
+```json
+{
+  "mcpServers": {
+    "filesystem": { /* ... */ },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git"]
+    }
+  }
+}
+```
+
+2. Reinicia Claude Code
+
+3. Prueba estos comandos:
+```bash
+claude
+> /mcp  # Verificar que git está conectado
+> ¿Cuáles son los últimos 5 commits de este repo?
+> ¿Hay cambios sin commitear?
+> Muestra el diff del último commit
+```
+
+---
+
+## 3. Subagentes y Sistemas Multi-Agente
+
+**⏱️ Tiempo estimado: 45 minutos**
+
+### 3.1 ¿Qué es un Subagente?
+
+Un subagente es un **agente secundario** que el agente principal puede "spawner" para tareas específicas.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AGENTE PRINCIPAL                          │
+│                    (Claude Code)                             │
+│                                                              │
+│  "Implementa autenticación completa con frontend y tests"   │
+│                           │                                  │
+│           ┌───────────────┼───────────────┐                  │
+│           ▼               ▼               ▼                  │
+│    ┌──────────┐    ┌──────────┐    ┌──────────┐             │
+│    │Subagente │    │Subagente │    │Subagente │             │
+│    │ Backend  │    │ Frontend │    │  Tests   │             │
+│    │          │    │          │    │          │             │
+│    │• JWT     │    │• Login   │    │• Unit    │             │
+│    │• Refresh │    │• Logout  │    │• E2E     │             │
+│    │• Middleware│  │• Token   │    │• Mocks   │             │
+│    └──────────┘    └──────────┘    └──────────┘             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 ¿Por Qué Usar Subagentes?
+
+| Sin Subagentes | Con Subagentes |
+|----------------|----------------|
+| Un solo "hilo" de trabajo | Trabajo paralelo |
+| Contexto compartido (se llena rápido) | Cada subagente tiene su contexto |
+| Si falla una parte, todo se afecta | Fallos aislados |
+| Difícil de coordinar tareas grandes | Divide y vencerás |
+
+### 3.3 Cuándo Claude Usa Subagentes
+
+Claude Code automáticamente puede usar subagentes cuando:
+
+1. **Tareas paralelas**: "Implementa backend y frontend simultáneamente"
+2. **Búsquedas amplias**: "Encuentra todos los usos de esta función en el proyecto"
+3. **Análisis complejos**: "Revisa todo el código buscando vulnerabilidades"
+
+### 💡 Concepto Clave: El "Task Tool"
+
+> En Claude Code, cuando ves que se lanza un "Task", es un subagente. El agente principal coordina y el Task ejecuta trabajo específico.
+
+### 3.4 Patrón Manual: Multi-Terminal
+
+Puedes simular subagentes manualmente:
 
 ```bash
-# El agente principal coordina:
-claude "Implementa una feature de autenticación con:
-- Backend API (JWT tokens)
-- Frontend (React form)
-- Tests (unitarios + integración)
-- Documentación
+# Terminal 1 - Agente Backend
+claude "Eres el desarrollador backend. Implementa el endpoint
+        POST /api/auth/login con JWT. Avísame cuando termines."
 
-Trabaja en paralelo donde sea posible."
+# Terminal 2 - Agente Frontend
+claude "Eres el desarrollador frontend. Implementa el componente
+        LoginForm que llame a POST /api/auth/login. Avísame cuando
+        termines."
+
+# Terminal 3 - Coordinador
+claude "Revisa el trabajo en src/api/auth.ts y src/components/LoginForm.tsx.
+        Verifica que sean compatibles y que funcionen juntos."
 ```
 
-Claude Code puede internamente:
-1. Spawnar un subagente para el backend
-2. Spawnar otro para el frontend (en paralelo)
-3. Coordinar cuando ambos terminan para integrar
-4. Ejecutar tests al final
+### 📍 Checkpoint 3
 
-### Patrón de Implementación
-
-```python
-class MainAgent:
-    def __init__(self):
-        self.subagents = {
-            "frontend": FrontendAgent(),
-            "backend": BackendAgent(),
-            "testing": TestAgent(),
-            "docs": DocsAgent()
-        }
-
-    def execute_task(self, task: str):
-        # 1. Analizar y descomponer tarea
-        subtasks = self.decompose(task)
-
-        # 2. Identificar dependencias
-        dependency_graph = self.build_dependencies(subtasks)
-
-        # 3. Ejecutar en paralelo donde sea posible
-        results = []
-        for level in dependency_graph.levels():
-            level_results = asyncio.gather(*[
-                self.subagents[subtask.type].execute(subtask)
-                for subtask in level
-            ])
-            results.extend(level_results)
-
-        # 4. Integrar resultados
-        return self.integrate(results)
-
-    def decompose(self, task: str) -> list:
-        """Divide la tarea en subtareas especializadas."""
-        return self.llm.analyze(f"Divide esta tarea: {task}")
-```
-
-### Comunicación entre Agentes
-
-```python
-class AgentMessage:
-    sender: str
-    recipient: str
-    message_type: str  # "request", "response", "notification"
-    content: dict
-    metadata: dict
-
-class AgentBus:
-    """Bus de comunicación entre agentes."""
-
-    async def send(self, message: AgentMessage):
-        recipient = self.agents[message.recipient]
-        await recipient.receive(message)
-
-    async def broadcast(self, message: AgentMessage):
-        for agent in self.agents.values():
-            if agent.name != message.sender:
-                await agent.receive(message)
-```
+Responde:
+- [ ] ¿Cuándo usarías subagentes?
+- [ ] ¿Cuál es la ventaja principal de dividir el trabajo?
 
 ---
 
 ## 4. Hooks y Automatización
 
-### ¿Qué son los Hooks?
+**⏱️ Tiempo estimado: 45 minutos**
 
-Los hooks permiten ejecutar acciones automáticas en puntos específicos del workflow del agente.
+### 4.1 ¿Qué son los Hooks?
 
-### Hooks en Claude Code
+Los hooks son **scripts que se ejecutan automáticamente** en puntos específicos del workflow de Claude.
+
+```
+Usuario: "Edita auth.ts para añadir validación"
+                    │
+                    ▼
+            ┌──────────────┐
+            │  pre-edit    │ ◄── Hook: npm run format
+            │   HOOK       │
+            └──────────────┘
+                    │
+                    ▼
+            ┌──────────────┐
+            │  Claude      │
+            │  edita       │
+            │  archivo     │
+            └──────────────┘
+                    │
+                    ▼
+            ┌──────────────┐
+            │  post-edit   │ ◄── Hook: npm run lint
+            │   HOOK       │
+            └──────────────┘
+                    │
+                    ▼
+            Archivo editado y validado
+```
+
+### 4.2 Tipos de Hooks Disponibles
+
+| Hook | Cuándo se ejecuta | Uso típico |
+|------|-------------------|------------|
+| `pre-edit` | Antes de editar archivo | Formatear, crear backup |
+| `post-edit` | Después de editar | Lint, type-check |
+| `pre-command` | Antes de ejecutar comando | Logging, validación |
+| `post-command` | Después de comando | Verificar resultado |
+| `pre-commit` | Antes de git commit | Tests, lint |
+| `on-error` | Cuando algo falla | Notificaciones |
+
+### 4.3 Configurar Hooks
+
+Crea `.claude/hooks.json` en tu proyecto:
 
 ```json
-// .claude/hooks.json
 {
   "hooks": {
-    "pre-edit": {
-      "command": "npm run format",
-      "description": "Formatear código antes de editar"
-    },
     "post-edit": {
-      "command": "npm run lint --fix",
-      "description": "Lint después de cada edición"
-    },
-    "pre-command": {
-      "command": "echo 'Ejecutando: $COMMAND'",
-      "description": "Log de comandos"
-    },
-    "post-command": {
-      "command": "./scripts/check-result.sh",
-      "description": "Verificar resultado de comando"
+      "command": "npm run lint:fix",
+      "description": "Auto-fix linting después de edición",
+      "timeout": 30000
     },
     "pre-commit": {
       "command": "npm test && npm run lint",
-      "description": "Tests y lint antes de commit"
+      "description": "Tests y lint antes de commit",
+      "timeout": 120000
     },
     "on-error": {
-      "command": "./scripts/notify-error.sh",
-      "description": "Notificar errores"
+      "command": "echo 'Error en Claude Code' >> ~/.claude/errors.log",
+      "description": "Loggear errores"
     }
   }
 }
 ```
 
-### Tipos de Hooks Disponibles
+### 4.4 Hooks Prácticos para TaskFlow
 
-| Hook | Cuándo se ejecuta |
-|------|-------------------|
-| `pre-edit` | Antes de modificar un archivo |
-| `post-edit` | Después de modificar un archivo |
-| `pre-command` | Antes de ejecutar un comando shell |
-| `post-command` | Después de ejecutar un comando shell |
-| `pre-commit` | Antes de hacer git commit |
-| `post-commit` | Después de hacer git commit |
-| `on-error` | Cuando ocurre un error |
-| `on-start` | Al iniciar sesión |
-| `on-end` | Al terminar sesión |
+#### Hook: Formatear antes de editar
 
-### Comandos Personalizados
-
-Crea comandos reutilizables en `.claude/commands/`:
-
-#### Ejemplo: Comando de Deploy
-
-```markdown
-# .claude/commands/deploy.md
-
-# Deploy a Producción
-
-Sigue estos pasos para hacer deploy:
-
-## Pre-requisitos
-- [ ] Todos los tests pasan
-- [ ] El código está formateado
-- [ ] No hay warnings de lint
-
-## Pasos
-1. Ejecutar suite de tests completa: `npm run test:all`
-2. Build de producción: `npm run build`
-3. Deploy a staging: `./scripts/deploy-staging.sh`
-4. Ejecutar smoke tests: `npm run test:smoke -- --env=staging`
-5. Si todo OK, deploy a producción: `./scripts/deploy-prod.sh`
-6. Verificar health checks: `curl https://api.example.com/health`
-7. Notificar en Slack: `./scripts/notify-deploy.sh`
-
-## Rollback
-Si algo falla: `./scripts/rollback.sh`
-
-Confirma cada paso antes de continuar.
+```json
+{
+  "pre-edit": {
+    "command": "npx prettier --write",
+    "args": ["$FILE"],
+    "description": "Formatear archivo antes de editar"
+  }
+}
 ```
 
-**Uso**: `/project:deploy`
+**$FILE** se reemplaza con la ruta del archivo que Claude va a editar.
 
-#### Ejemplo: Comando de Code Review
+#### Hook: Verificar tipos después de editar
 
-```markdown
-# .claude/commands/review.md
-
-# Code Review Completo
-
-Realiza un code review exhaustivo del código actual.
-
-## Checklist
-1. **Seguridad**
-   - Buscar inyecciones SQL/XSS
-   - Verificar validación de inputs
-   - Revisar manejo de secretos
-
-2. **Performance**
-   - Identificar N+1 queries
-   - Buscar operaciones bloqueantes
-   - Verificar uso de caché
-
-3. **Calidad**
-   - Código duplicado
-   - Funciones muy largas
-   - Nombres poco descriptivos
-
-4. **Tests**
-   - Cobertura suficiente
-   - Tests de edge cases
-   - Tests de integración
-
-## Formato de Salida
-Para cada problema encontrado:
-- Archivo y línea
-- Severidad (CRÍTICO/ALTO/MEDIO/BAJO)
-- Descripción
-- Sugerencia de fix
+```json
+{
+  "post-edit": {
+    "command": "npx tsc --noEmit",
+    "description": "Verificar tipos TypeScript",
+    "continueOnError": true
+  }
+}
 ```
 
-**Uso**: `/project:review`
+**continueOnError**: No bloquea si hay errores de tipos (solo avisa).
 
-### Scripts de Automatización
+#### Hook: Tests antes de commit
 
-#### Script de Setup de Proyecto
+```json
+{
+  "pre-commit": {
+    "command": "npm test -- --coverage --watchAll=false",
+    "description": "Ejecutar tests con coverage",
+    "timeout": 180000
+  }
+}
+```
+
+### ⚠️ Error Común: Hook que bloquea todo
+
+**Problema**: Un hook lento o que falla bloquea el workflow.
+
+**Solución**:
+```json
+{
+  "post-edit": {
+    "command": "npm run lint",
+    "timeout": 10000,
+    "continueOnError": true,
+    "async": true
+  }
+}
+```
+
+- **timeout**: Máximo tiempo de ejecución
+- **continueOnError**: No bloquear si falla
+- **async**: Ejecutar en background
+
+---
+
+### 🎯 Práctica Guiada 3: Crear Sistema de Hooks
+
+1. Crea la estructura de hooks:
 
 ```bash
-#!/bin/bash
-# .claude/scripts/setup-project.sh
+mkdir -p .claude
+touch .claude/hooks.json
+```
 
-echo "🚀 Configurando proyecto para desarrollo con IA..."
+2. Añade configuración:
 
-# Crear estructura de carpetas
-mkdir -p .claude/commands
-mkdir -p .claude/scripts
+```json
+{
+  "hooks": {
+    "post-edit": {
+      "command": "npx prettier --write $FILE && npx eslint --fix $FILE",
+      "description": "Format y lint automático",
+      "timeout": 15000,
+      "continueOnError": true
+    },
+    "pre-commit": {
+      "command": "npm test -- --watchAll=false",
+      "description": "Tests antes de commit",
+      "timeout": 120000
+    }
+  }
+}
+```
 
-# Crear CLAUDE.md si no existe
-if [ ! -f CLAUDE.md ]; then
-    cat > CLAUDE.md << 'EOF'
-# Contexto del Proyecto
+3. Prueba el sistema:
 
-## Stack
-- TODO: Definir tecnologías
-
-## Convenciones
-- TODO: Definir convenciones
-
-## Comandos
-- `npm run dev` - Desarrollo
-- `npm test` - Tests
-EOF
-    echo "✅ CLAUDE.md creado"
-fi
-
-# Verificar dependencias
-command -v node >/dev/null 2>&1 || echo "⚠️  Node.js no instalado"
-command -v git >/dev/null 2>&1 || echo "⚠️  Git no instalado"
-
-echo "✅ Setup completado"
+```bash
+claude
+> Añade un comentario al inicio de src/index.ts
+# Observa cómo se ejecuta prettier y eslint automáticamente
 ```
 
 ---
 
 ## 5. Configuración Avanzada
 
-### Variables de Entorno
+**⏱️ Tiempo estimado: 30 minutos**
 
-```bash
-# Claude Code
-export ANTHROPIC_API_KEY="sk-ant-api03-..."
-export CLAUDE_MODEL="claude-sonnet-4-5-20250929"
-export CLAUDE_MAX_TOKENS=4096
+### 5.1 Estructura Completa de Configuración
 
-# Gemini CLI
-export GOOGLE_API_KEY="AIza..."
-export GEMINI_MODEL="gemini-3-pro"
+```
+~/.claude/                    # Configuración global
+├── settings.json             # Settings globales
+├── memory/                   # Memoria persistente
+└── profiles/                 # Perfiles de trabajo
+    ├── frontend.json
+    └── backend.json
 
-# Codex CLI
-export OPENAI_API_KEY="sk-..."
-export CODEX_MODEL="gpt-5.2-codex"
-
-# MCP común
-export MCP_LOG_LEVEL="debug"  # Para debugging
+tu-proyecto/
+├── .claude/                  # Configuración del proyecto
+│   ├── config.json           # Override de settings
+│   ├── hooks.json            # Hooks del proyecto
+│   └── commands/             # Comandos personalizados
+│       ├── deploy.md
+│       └── review.md
+├── CLAUDE.md                 # Contexto del proyecto
+└── mcp-config.json           # Servidores MCP
 ```
 
-### Archivo de Configuración Global
+### 5.2 Perfiles de Trabajo
 
-```json
-// ~/.claude/settings.json
-{
-  "model": "claude-sonnet-4-5-20250929",
-  "maxTokens": 4096,
-  "temperature": 0.7,
-
-  "permissions": {
-    "allowFileWrite": true,
-    "allowShellCommands": true,
-    "allowNetworkAccess": true,
-    "requireConfirmation": true,
-    "dangerousCommands": ["rm -rf", "sudo", "chmod 777"]
-  },
-
-  "mcpServers": {
-    // Servidores MCP configurados globalmente
-  },
-
-  "memory": {
-    "enabled": true,
-    "path": "~/.claude/memory",
-    "maxSize": "100MB"
-  },
-
-  "ui": {
-    "theme": "dark",
-    "showTokenCount": true,
-    "showCost": true,
-    "compactMode": false
-  },
-
-  "hooks": {
-    "enabled": true,
-    "timeout": 30000
-  }
-}
-```
-
-### Configuración por Proyecto
-
-```json
-// proyecto/.claude/config.json
-{
-  "extends": "~/.claude/settings.json",
-
-  "model": "claude-opus-4-5-20251101",  // Override para este proyecto
-
-  "context": {
-    "include": ["src/**", "tests/**", "docs/**"],
-    "exclude": ["node_modules/**", "dist/**", "*.log"]
-  },
-
-  "mcpServers": {
-    "proyecto-db": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres"],
-      "env": {
-        "DATABASE_URL": "${DATABASE_URL}"  // De .env
-      }
-    }
-  }
-}
-```
-
-### Perfiles de Configuración
+Crea perfiles para diferentes contextos:
 
 ```json
 // ~/.claude/profiles/frontend.json
 {
-  "name": "Frontend Development",
-  "model": "claude-sonnet-4-5-20250929",
+  "name": "Frontend Developer",
+  "model": "claude-sonnet-4-5",
+  "systemPrompt": "Eres experto en React 18, TypeScript y TailwindCSS.
+                   Siempre usas hooks modernos y evitas class components.",
   "context": {
-    "focus": ["*.tsx", "*.ts", "*.css", "*.scss"],
-    "exclude": ["*.test.*"]
-  },
-  "systemPrompt": "Eres un experto en React, TypeScript y CSS moderno."
-}
-
-// ~/.claude/profiles/backend.json
-{
-  "name": "Backend Development",
-  "model": "claude-opus-4-5-20251101",
-  "context": {
-    "focus": ["*.py", "*.sql", "*.yaml"],
-    "exclude": ["*.pyc", "__pycache__"]
-  },
-  "systemPrompt": "Eres un experto en Python, FastAPI y PostgreSQL."
+    "include": ["src/components/**", "src/hooks/**", "src/styles/**"],
+    "exclude": ["src/api/**", "src/services/**"]
+  }
 }
 ```
 
-**Uso**: `claude --profile frontend`
+```json
+// ~/.claude/profiles/backend.json
+{
+  "name": "Backend Developer",
+  "model": "claude-opus-4-5",
+  "systemPrompt": "Eres experto en Node.js, Express y PostgreSQL.
+                   Priorizas seguridad y performance.",
+  "context": {
+    "include": ["src/api/**", "src/services/**", "src/models/**"],
+    "exclude": ["src/components/**"]
+  }
+}
+```
+
+**Uso**:
+```bash
+claude --profile frontend
+claude --profile backend
+```
+
+### 5.3 Variables de Entorno Importantes
+
+```bash
+# API Keys
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GITHUB_TOKEN="ghp_..."
+export DATABASE_URL="postgresql://..."
+
+# Configuración de Claude Code
+export CLAUDE_MODEL="claude-sonnet-4-5-20250929"
+export CLAUDE_MAX_TOKENS=4096
+
+# Debug
+export MCP_LOG_LEVEL="debug"  # Para ver comunicación MCP
+```
 
 ---
 
 ## 6. Ejercicios Prácticos
 
-### Ejercicio 1: Gestión de Contexto
+### Ejercicio 1: Análisis de Contexto (20 min)
+**Nivel: Básico**
 
-Experimenta con diferentes tamaños de contexto:
+1. Abre un proyecto mediano (10+ archivos)
+2. Inicia Claude Code y pide análisis general
+3. Después de 20 prompts, usa `/cost`
+4. Practica `/compact` y observa la diferencia
 
+**Criterio de éxito**: Entiendes cuánto contexto consume tu proyecto.
+
+### Ejercicio 2: Configurar MCP Básico (30 min)
+**Nivel: Intermedio**
+
+1. Configura el MCP de filesystem para tu proyecto
+2. Configura el MCP de git
+3. Verifica con `/mcp`
+4. Ejecuta: "Muestra los archivos modificados en el último commit"
+
+**Criterio de éxito**: Ambos MCPs responden correctamente.
+
+### Ejercicio 3: Sistema de Hooks (30 min)
+**Nivel: Intermedio**
+
+1. Crea `.claude/hooks.json`
+2. Añade hook `post-edit` que ejecute prettier
+3. Añade hook `pre-commit` que ejecute tests
+4. Prueba editando un archivo y haciendo commit
+
+**Criterio de éxito**: Los hooks se ejecutan automáticamente.
+
+### Ejercicio 4: Multi-Agente Manual (45 min)
+**Nivel: Avanzado**
+
+1. Abre 3 terminales
+2. En cada una, inicia Claude con un rol diferente:
+   - Terminal 1: "Eres el arquitecto. Diseña el sistema"
+   - Terminal 2: "Eres el implementador. Escribe el código"
+   - Terminal 3: "Eres el tester. Escribe tests y verifica"
+3. Coordina el trabajo manualmente entre las 3
+
+**Criterio de éxito**: Produces código funcional con tests usando coordinación manual.
+
+---
+
+## 7. Troubleshooting
+
+### "Context window full"
+
+**Solución rápida**:
 ```bash
-# Cargar un archivo grande
-claude "Lee package.json y todos los archivos en src/ y explica la arquitectura"
-
-# Ver uso de contexto
-/tokens
-
-# Compactar si es necesario
-/compact
+claude
+> /compact
 ```
 
-### Ejercicio 2: Configurar MCP
+**Solución permanente**: Divide el trabajo en sesiones más pequeñas.
 
-1. Configura el MCP de filesystem
-2. Usa el MCP de Git
-3. Verifica con `/mcp`
+### "MCP server disconnected"
 
+**Diagnóstico**:
+```bash
+# Ver logs del servidor MCP
+export MCP_LOG_LEVEL=debug
+claude
+> /mcp
+```
+
+**Solución común**: Reiniciar el servidor MCP (salir y entrar de Claude).
+
+### "Hook timeout exceeded"
+
+**Solución**:
 ```json
 {
-  "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-    }
+  "pre-commit": {
+    "command": "npm test",
+    "timeout": 300000,
+    "async": true
   }
 }
 ```
 
-### Ejercicio 3: Crear Hooks
+---
 
-1. Crea un hook pre-commit que ejecute tests
-2. Crea un hook post-edit que formatee código
-3. Prueba que funcionen
+## Resumen del Módulo
 
-### Ejercicio 4: Comandos Personalizados
+### Lo que aprendiste
 
-1. Crea un comando `/project:setup` que configure el proyecto
-2. Crea un comando `/project:status` que muestre estado del proyecto
-3. Prueba ambos comandos
+1. **Ventanas de contexto**: Qué son, tamaños, estrategias de gestión
+2. **MCP**: Arquitectura, componentes (Resources, Tools, Prompts)
+3. **Configuración MCP**: Filesystem, Git, verificación
+4. **Subagentes**: Cuándo y cómo dividir trabajo
+5. **Hooks**: Automatización de tareas repetitivas
 
-### Ejercicio 5: Multi-Agente Manual
+### Preparación para el Módulo 4
 
-Simula un sistema multi-agente:
+En el próximo módulo veremos **MCPs oficiales del mercado**:
+- AWS MCP Servers
+- Cloudflare MCP
+- Firebase, GitHub, bases de datos
+- Cómo elegir y combinar MCPs
 
-```bash
-# Terminal 1 - Agente Backend
-claude "Eres el agente de Backend. Implementa una API REST de usuarios."
-
-# Terminal 2 - Agente Frontend
-claude "Eres el agente de Frontend. Implementa un formulario de registro."
-
-# Terminal 3 - Coordinador
-claude "Revisa el trabajo de los otros agentes e intégralos."
-```
+**Tarea previa**: Ten al menos 2 MCPs configurados y funcionando.
 
 ---
 
@@ -747,15 +919,5 @@ claude "Revisa el trabajo de los otros agentes e intégralos."
 
 - [MCP Specification](https://modelcontextprotocol.io)
 - [MCP Servers Repository](https://github.com/modelcontextprotocol/servers)
-- [Claude Code Docs](https://docs.anthropic.com/claude-code)
-- [Building MCP Servers](https://modelcontextprotocol.io/docs/building)
-
----
-
-## Próximo Módulo
-
-En el **Módulo 4: MCPs Oficiales del Mercado** aprenderás:
-- MCPs de referencia de Anthropic
-- AWS MCP Servers
-- Cloudflare MCP Servers
-- Firebase, GitHub, bases de datos y más
+- [Claude Code Docs - MCP](https://docs.anthropic.com/claude-code/mcp)
+- [Awesome MCP](https://github.com/punkpeye/awesome-mcp-servers)
