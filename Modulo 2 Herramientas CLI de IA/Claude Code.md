@@ -1,14 +1,37 @@
 # Claude Code (Anthropic)
 
-**⏱️ Tiempo estimado: 45 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 45 minutos |
+| **Nivel** | Principiante |
+| **Requisitos** | Node.js 18+, cuenta Anthropic |
+| **Costo** | Pago por uso (API) o incluido en suscripción |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Instalar y autenticar Claude Code
+- [ ] Usar los tres modos de operación (Normal, Auto-accept, YOLO)
+- [ ] Dominar los comandos slash esenciales
+- [ ] Crear un archivo CLAUDE.md para tu proyecto
+- [ ] Crear comandos personalizados reutilizables
+
+---
 
 ## ¿Por Qué Claude Code?
 
 Claude Code es la CLI oficial de Anthropic. Sus fortalezas:
 
-- **Mejor razonamiento**: Claude destaca en entender código complejo
-- **Más seguro**: Pide confirmación antes de acciones destructivas
-- **MCP nativo**: Integración profunda con Model Context Protocol
+| Ventaja | Descripción |
+|---------|-------------|
+| **Mejor razonamiento** | Claude destaca en entender código complejo |
+| **Más seguro** | Pide confirmación antes de acciones destructivas |
+| **MCP nativo** | Integración profunda con Model Context Protocol |
 
 ---
 
@@ -365,6 +388,18 @@ Antes de continuar, verifica:
 - [ ] Entiendes los tres modos de operación
 - [ ] Has probado al menos 3 comandos slash
 - [ ] Puedes crear un comando personalizado básico
+- [ ] Sabes cuándo elegir Claude Code sobre otras CLIs
+
+---
+
+## Resumen
+
+| Aspecto | Claude Code |
+|---------|-------------|
+| **Mejor para** | Razonamiento complejo, código crítico, MCP |
+| **Feature única** | Mejor análisis de código, MCP nativo |
+| **Costo** | Pago por uso o suscripción |
+| **Limitación** | Contexto menor (200K vs 1M de Gemini) |
 
 ---
 

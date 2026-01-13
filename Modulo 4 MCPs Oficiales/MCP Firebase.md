@@ -1,6 +1,27 @@
 # Firebase MCP
 
-**⏱️ Tiempo estimado: 30 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 30 minutos |
+| **Nivel** | Intermedio |
+| **Requisitos** | Proyecto Firebase, Service Account Key |
+| **Tipo de BD** | NoSQL (Firestore) |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Generar y configurar Service Account Key
+- [ ] Gestionar usuarios con Authentication
+- [ ] Crear y consultar documentos en Firestore
+- [ ] Subir y descargar archivos de Storage
+- [ ] Diseñar estructura de datos para Firestore
+
+---
 
 Firebase ofrece un **backend completo sin servidor**:
 - Autenticación de usuarios
@@ -126,6 +147,27 @@ firestore/
         ├── proyecto_id
         └── asignado_a
 ```
+
+---
+
+## 📍 Checkpoint
+
+Verifica que puedes:
+- [ ] Generar Service Account Key desde Firebase Console
+- [ ] Configurar el MCP con la ruta correcta al archivo JSON
+- [ ] Crear un documento en Firestore desde Claude
+- [ ] Listar usuarios de Authentication
+
+---
+
+## Resumen
+
+| Aspecto | Firebase MCP |
+|---------|--------------|
+| **Mejor para** | Apps móviles/web con backend completo |
+| **Ventaja clave** | Ecosistema integrado (Auth + DB + Storage) |
+| **Precaución** | NUNCA commitear serviceAccountKey.json |
+| **Tipo de BD** | NoSQL (Firestore) - documentos anidados |
 
 ---
 

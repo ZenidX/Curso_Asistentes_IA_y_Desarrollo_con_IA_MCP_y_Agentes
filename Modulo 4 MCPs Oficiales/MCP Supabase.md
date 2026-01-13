@@ -1,6 +1,27 @@
 # Supabase MCP
 
-**⏱️ Tiempo estimado: 35 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 35 minutos |
+| **Nivel** | Intermedio |
+| **Requisitos** | Proyecto en Supabase, credenciales API |
+| **Costo** | Tier gratuito disponible |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Configurar Supabase MCP (remoto o local)
+- [ ] Ejecutar consultas SQL desde Claude
+- [ ] Gestionar usuarios y autenticación
+- [ ] Usar Row Level Security para proteger datos
+- [ ] Subir y gestionar archivos en Storage
+
+---
 
 Supabase es una alternativa open source a Firebase que ofrece:
 - Base de datos PostgreSQL
@@ -216,6 +237,27 @@ const channel = supabase
 3. **Self-hosting**: Puedes hostear tu propia instancia
 4. **Extensiones**: PostGIS, pg_vector, etc.
 5. **Open Source**: Código completamente abierto
+
+---
+
+## 📍 Checkpoint
+
+Verifica que puedes:
+- [ ] Obtener credenciales desde el Dashboard de Supabase
+- [ ] Configurar el MCP (remoto u local)
+- [ ] Ejecutar una consulta SQL desde Claude
+- [ ] Entender la diferencia entre Service Role Key y Anon Key
+
+---
+
+## Resumen
+
+| Aspecto | Supabase MCP |
+|---------|--------------|
+| **Mejor para** | Proyectos que necesitan PostgreSQL + Auth + Storage |
+| **Ventaja clave** | Open source, SQL completo, Row Level Security |
+| **Precaución** | Nunca exponer Service Role Key en cliente |
+| **Alternativa a** | Firebase (pero con SQL en lugar de NoSQL) |
 
 ---
 

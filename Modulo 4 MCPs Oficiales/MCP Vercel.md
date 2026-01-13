@@ -1,6 +1,27 @@
 # Vercel MCP
 
-**⏱️ Tiempo estimado: 30 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 30 minutos |
+| **Nivel** | Intermedio |
+| **Requisitos** | Cuenta Vercel, Token de acceso |
+| **Tipo** | Disponible remoto y local |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Configurar Vercel MCP (remoto o con token)
+- [ ] Listar y gestionar proyectos y deployments
+- [ ] Configurar variables de entorno
+- [ ] Gestionar dominios personalizados
+- [ ] Consultar logs de deployments
+
+---
 
 Vercel es la plataforma líder para deployment de aplicaciones frontend y serverless. Con el MCP puedes:
 - Gestionar proyectos y deployments
@@ -228,6 +249,27 @@ PR #43          → taskflow-git-fix-bug-mi-usuario.vercel.app
 |------|----------|------------|-----|
 | **Edge Functions** | ~50ms | Sin cold start | Auth, redirects, A/B tests |
 | **Serverless** | Variable | Posible | APIs, webhooks, procesamiento |
+
+---
+
+## 📍 Checkpoint
+
+Verifica que puedes:
+- [ ] Generar un token en Vercel Settings
+- [ ] Listar tus proyectos desde Claude
+- [ ] Ver los últimos deployments de un proyecto
+- [ ] Entender el flujo Git → Vercel → Preview/Production
+
+---
+
+## Resumen
+
+| Aspecto | Vercel MCP |
+|---------|------------|
+| **Mejor para** | Deployment de Next.js, React, frontend moderno |
+| **Ventaja clave** | Preview URLs por PR, CDN global, Edge Functions |
+| **Integración** | GitHub/GitLab/Bitbucket nativa |
+| **Caso de uso** | Gestionar deploys y env vars desde Claude |
 
 ---
 

@@ -1,6 +1,27 @@
 # MCPs de Bases de Datos
 
-**⏱️ Tiempo estimado: 45 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 45 minutos |
+| **Nivel** | Intermedio |
+| **Requisitos** | Base de datos instalada o acceso remoto |
+| **Opciones** | PostgreSQL, MySQL, MongoDB, SQLite, Redis |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Elegir el MCP adecuado según tu tipo de base de datos
+- [ ] Configurar conexiones de forma segura
+- [ ] Ejecutar consultas SQL/NoSQL desde Claude
+- [ ] Entender cuándo usar SQL vs NoSQL vs Key-Value
+- [ ] Diseñar un schema básico para TaskFlow
+
+---
 
 ## Panorama de opciones
 
@@ -214,6 +235,28 @@ mongosh "mongodb://localhost:27017/taskflow"
 # Redis
 redis-cli ping
 ```
+
+---
+
+## 📍 Checkpoint
+
+Verifica que puedes:
+- [ ] Elegir entre PostgreSQL, MySQL, MongoDB o SQLite según tu caso
+- [ ] Configurar al menos un MCP de base de datos
+- [ ] Ejecutar una consulta simple desde Claude
+- [ ] Usar variables de entorno para credenciales (no hardcodeadas)
+
+---
+
+## Resumen
+
+| Base de datos | Tipo | Mejor para |
+|---------------|------|------------|
+| **PostgreSQL** | SQL Relacional | Datos estructurados, JOINs complejos |
+| **MySQL** | SQL Relacional | Aplicaciones web tradicionales |
+| **MongoDB** | NoSQL Documentos | Datos flexibles, esquema dinámico |
+| **SQLite** | SQL Embebido | Desarrollo local, prototipado |
+| **Redis** | Key-Value | Caché, sesiones, datos rápidos |
 
 ---
 

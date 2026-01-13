@@ -1,6 +1,27 @@
 # AWS MCP Servers
 
-**⏱️ Tiempo estimado: 45 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 45 minutos |
+| **Nivel** | Intermedio |
+| **Requisitos** | Cuenta AWS, AWS CLI configurado |
+| **Riesgo** | Alto (configurable a solo lectura) |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Configurar AWS MCP con permisos limitados
+- [ ] Usar el modo solo lectura para exploración segura
+- [ ] Ejecutar comandos AWS CLI desde Claude
+- [ ] Analizar costos de infraestructura
+- [ ] Acceder a documentación y best practices de AWS
+
+---
 
 AWS es la plataforma cloud más usada. Con MCPs oficiales puedes **gestionar tu infraestructura cloud conversando con Claude**.
 
@@ -163,6 +184,27 @@ aws sts get-caller-identity
 # Listar perfiles disponibles
 aws configure list-profiles
 ```
+
+---
+
+## 📍 Checkpoint
+
+Verifica que puedes:
+- [ ] Ejecutar `aws sts get-caller-identity` correctamente
+- [ ] Configurar el MCP con `READ_OPERATIONS_ONLY=true`
+- [ ] Listar recursos AWS desde Claude (buckets, instancias, etc.)
+- [ ] Entender la diferencia entre los 4 MCPs de AWS
+
+---
+
+## Resumen
+
+| Aspecto | AWS MCPs |
+|---------|----------|
+| **Mejor para** | Gestión de infraestructura cloud compleja |
+| **Precaución** | Siempre usar permisos mínimos y modo solo lectura inicialmente |
+| **MCPs disponibles** | API, Knowledge, CDK, Cost Analysis |
+| **Requisito** | AWS CLI configurado con perfil IAM limitado |
 
 ---
 

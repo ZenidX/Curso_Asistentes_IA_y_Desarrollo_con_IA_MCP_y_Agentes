@@ -1,6 +1,27 @@
 # GitHub MCP
 
-**⏱️ Tiempo estimado: 30 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 30 minutos |
+| **Nivel** | Principiante |
+| **Requisitos** | Cuenta GitHub, Personal Access Token |
+| **Riesgo** | Medio (según permisos del token) |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Generar un token de GitHub con permisos mínimos
+- [ ] Configurar el GitHub MCP
+- [ ] Gestionar issues y PRs desde Claude
+- [ ] Crear branches y hacer push de archivos
+- [ ] Automatizar workflows de desarrollo
+
+---
 
 Con el GitHub MCP puedes:
 - Gestionar issues y PRs sin salir de Claude
@@ -119,6 +140,27 @@ Claude: create_pull_request(
 ```bash
 curl -H "Authorization: token ghp_xxx" https://api.github.com/user
 ```
+
+---
+
+## 📍 Checkpoint
+
+Verifica que puedes:
+- [ ] Verificar tu token con `curl` hacia la API de GitHub
+- [ ] Listar issues de un repositorio desde Claude
+- [ ] Crear un issue de prueba
+- [ ] Entender los permisos mínimos necesarios
+
+---
+
+## Resumen
+
+| Aspecto | GitHub MCP |
+|---------|------------|
+| **Mejor para** | Automatizar gestión de issues, PRs y código |
+| **Feature clave** | Integración completa con Git sin usar terminal |
+| **Precaución** | Usar Fine-grained tokens con acceso limitado |
+| **Caso de uso** | Crear issues desde análisis de código, revisar PRs |
 
 ---
 

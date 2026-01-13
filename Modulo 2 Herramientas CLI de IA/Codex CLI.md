@@ -1,12 +1,35 @@
 # Codex CLI (OpenAI)
 
-**⏱️ Tiempo estimado: 20 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 20 minutos |
+| **Nivel** | Principiante |
+| **Requisitos** | Node.js 18+, cuenta OpenAI o ChatGPT Plus |
+| **Costo** | Gratis con ChatGPT Plus, o pago por uso con API |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Instalar y configurar Codex CLI
+- [ ] Autenticarte con ChatGPT Plus o API key
+- [ ] Entender los tres modos de aprobación
+- [ ] Usar el comando `codex review` para code reviews
+- [ ] Ejecutar tareas en la nube con Cloud Tasks
+
+---
 
 ## ¿Por Qué Codex CLI?
 
-- **Integración ChatGPT**: Si ya pagas ChatGPT Plus, sin costo adicional
-- **Cloud Tasks**: Puede ejecutar tareas en paralelo en la nube
-- **Code Review integrado**: Comando específico para revisiones
+| Ventaja | Descripción |
+|---------|-------------|
+| **Integración ChatGPT** | Si ya pagas ChatGPT Plus, sin costo adicional |
+| **Cloud Tasks** | Puede ejecutar tareas en paralelo en la nube |
+| **Code Review integrado** | Comando específico para revisiones |
 
 ---
 
@@ -30,6 +53,18 @@ brew install --cask codex
 yarn global add @openai/codex
 ```
 
+### ⚠️ Error Común: Conflicto con Homebrew
+
+Si tienes Homebrew instalado, puede haber conflicto con el nombre `codex`:
+
+```bash
+# Si hay conflicto, desinstalar primero
+brew uninstall codex  # Si existe otro package
+
+# Luego instalar la versión correcta
+npm install -g @openai/codex
+```
+
 ---
 
 ## 2. Autenticación
@@ -47,6 +82,12 @@ codex
 ```bash
 export OPENAI_API_KEY="sk-..."
 ```
+
+### 📍 Checkpoint 1
+
+Antes de continuar, verifica:
+- [ ] `codex --version` muestra la versión correcta
+- [ ] Puedes autenticarte con ChatGPT o API key
 
 ---
 
@@ -79,6 +120,15 @@ codex --approval-mode full-auto
 │  └──────────┘     └──────────┘     └──────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> 💡 **Recomendación**: Empieza con `suggest` para aprender. Pasa a `auto-edit` cuando entiendas el flujo. Usa `full-auto` solo en entornos de prueba aislados.
+
+### ⚠️ Advertencia: Modo full-auto
+
+**Nunca** uses `--approval-mode full-auto` en:
+- Repositorios con código de producción
+- Proyectos con acceso a bases de datos reales
+- Sistemas donde un error puede ser costoso
 
 ---
 
@@ -209,13 +259,25 @@ servers = ["github", "linear"]
 
 ---
 
-## 📍 Checkpoint
+## 📍 Checkpoint Final
 
 Verifica que puedes:
 - [ ] Ejecutar `codex --version`
 - [ ] Autenticarte con ChatGPT o API key
-- [ ] Ejecutar `codex review` en un proyecto
-- [ ] Entender los modos de aprobación
+- [ ] Ejecutar `codex review` en un proyecto con cambios Git
+- [ ] Entender los tres modos de aprobación
+- [ ] Saber cuándo elegir Codex sobre otras CLIs
+
+---
+
+## Resumen
+
+| Aspecto | Codex CLI |
+|---------|-----------|
+| **Mejor para** | Usuarios de ChatGPT Plus, code reviews, tareas paralelas |
+| **Feature única** | `codex review` y Cloud Tasks |
+| **Costo** | Gratis con ChatGPT Plus |
+| **Limitación** | Razonamiento menos profundo que Claude |
 
 ---
 

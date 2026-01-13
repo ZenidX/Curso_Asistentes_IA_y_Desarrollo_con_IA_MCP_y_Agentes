@@ -1,6 +1,27 @@
 # Cloudflare MCP Servers
 
-**⏱️ Tiempo estimado: 30 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 30 minutos |
+| **Nivel** | Intermedio |
+| **Requisitos** | Cuenta Cloudflare |
+| **Tipo** | Servidores remotos (no requieren instalación local) |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Configurar MCPs remotos de Cloudflare
+- [ ] Gestionar Workers (funciones serverless)
+- [ ] Usar D1 para base de datos SQL serverless
+- [ ] Almacenar objetos en R2 (sin costos de egress)
+- [ ] Usar KV para almacenamiento key-value
+
+---
 
 Cloudflare ofrece MCPs **remotos** para toda su plataforma:
 - No necesitas instalar nada localmente
@@ -140,6 +161,27 @@ Almacenamiento key-value distribuido globalmente.
 - Configuración distribuida
 - Sesiones de usuario
 - Feature flags
+
+---
+
+## 📍 Checkpoint
+
+Verifica que puedes:
+- [ ] Configurar al menos un MCP de Cloudflare
+- [ ] Autenticarte vía OAuth en el navegador
+- [ ] Ejecutar una consulta SQL en D1
+- [ ] Listar buckets en R2
+
+---
+
+## Resumen
+
+| Aspecto | Cloudflare MCPs |
+|---------|-----------------|
+| **Mejor para** | Aplicaciones serverless en el edge |
+| **Ventaja clave** | MCPs remotos, sin instalación, siempre actualizados |
+| **Servicios** | Workers, D1, R2, KV |
+| **Diferenciador** | R2 sin costos de egress (vs S3) |
 
 ---
 

@@ -1,12 +1,35 @@
 # Gemini CLI (Google)
 
-**⏱️ Tiempo estimado: 30 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 30 minutos |
+| **Nivel** | Principiante |
+| **Requisitos** | Node.js 18+, cuenta Google |
+| **Costo** | Gratis (1000 requests/día) |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Instalar y configurar Gemini CLI
+- [ ] Autenticarte con tu cuenta de Google
+- [ ] Ejecutar prompts básicos e interactivos
+- [ ] Aprovechar el contexto masivo de 1M tokens
+- [ ] Crear un archivo GEMINI.md para tu proyecto
+
+---
 
 ## ¿Por Qué Gemini CLI?
 
-- **Gratis**: Tier gratuito muy generoso (1000 requests/día)
-- **Contexto masivo**: 1 millón de tokens (vs 200K de Claude)
-- **Open Source**: Código completamente abierto
+| Ventaja | Descripción |
+|---------|-------------|
+| **Gratis** | Tier gratuito muy generoso (1000 requests/día) |
+| **Contexto masivo** | 1 millón de tokens (vs 200K de Claude) |
+| **Open Source** | Código completamente abierto |
 
 ---
 
@@ -30,6 +53,21 @@ brew install gemini-cli
 yarn global add @google/gemini-cli
 ```
 
+### ⚠️ Error Común: "gemini no reconocido"
+
+**Síntoma**: `'gemini' is not recognized as an internal or external command`
+
+**Solución**:
+```bash
+# Ver dónde se instaló npm global
+npm config get prefix
+
+# Añadir esa ruta/bin al PATH del sistema
+# Windows: Panel de Control → Sistema → Variables de entorno
+# Linux/macOS: Añadir a ~/.bashrc o ~/.zshrc
+export PATH="$PATH:$(npm config get prefix)/bin"
+```
+
 ---
 
 ## 2. Límites del Tier Gratuito
@@ -42,6 +80,14 @@ yarn global add @google/gemini-cli
 | Modelo | Gemini 2.5 Pro |
 
 **Cálculo práctico**: 1000 req/día ÷ 8 horas = **125 prompts/hora**. Más que suficiente para desarrollo normal.
+
+> 💡 **Concepto clave**: El contexto de 1M tokens significa que Gemini puede "ver" proyectos completos de una vez. Un proyecto típico de 10,000 líneas ocupa ~15,000 tokens, dejando espacio para conversaciones extensas.
+
+### 📍 Checkpoint 1
+
+Antes de continuar, verifica:
+- [ ] `gemini --version` funciona correctamente
+- [ ] Entiendes los límites del tier gratuito
 
 ---
 
@@ -195,13 +241,25 @@ gemini "Analiza los últimos 100 commits y detecta patrones"
 
 ---
 
-## 📍 Checkpoint
+## 📍 Checkpoint Final
 
 Verifica que puedes:
 - [ ] Ejecutar `gemini --version`
 - [ ] Autenticarte correctamente
-- [ ] Ejecutar prompts básicos
-- [ ] Crear un archivo GEMINI.md
+- [ ] Ejecutar prompts básicos en modo interactivo
+- [ ] Crear un archivo GEMINI.md para tu proyecto
+- [ ] Entender cuándo elegir Gemini sobre otras CLIs
+
+---
+
+## Resumen
+
+| Aspecto | Gemini CLI |
+|---------|------------|
+| **Mejor para** | Proyectos grandes, monorepos, presupuesto limitado |
+| **Contexto** | 1,000,000 tokens (el mayor disponible) |
+| **Costo** | Gratis hasta 1000 requests/día |
+| **Limitación** | Razonamiento menos profundo que Claude |
 
 ---
 

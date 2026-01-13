@@ -1,15 +1,38 @@
 # OpenCode
 
-**⏱️ Tiempo estimado: 30 minutos**
+## Información
+
+| | |
+|---|---|
+| **Duración** | 30 minutos |
+| **Nivel** | Principiante |
+| **Requisitos** | Terminal moderna, API key de cualquier proveedor |
+| **Costo** | Open source (pagas solo por los LLMs que uses) |
+
+---
+
+## Objetivos de Aprendizaje
+
+Al completar esta sección podrás:
+
+- [ ] Instalar OpenCode en tu sistema operativo
+- [ ] Configurar múltiples proveedores de IA
+- [ ] Usar los modos Plan y Build efectivamente
+- [ ] Crear un archivo AGENTS.md para tu proyecto
+- [ ] Usar modelos locales con Ollama
+
+---
 
 ## ¿Por Qué OpenCode?
 
 OpenCode es una alternativa **100% open source** a Claude Code que destaca por:
 
-- **Multi-proveedor**: Soporta OpenAI, Anthropic, Google, Groq, Ollama y más
-- **TUI avanzada**: Interfaz de terminal moderna con Bubble Tea
-- **Sin vendor lock-in**: Usa cualquier modelo, incluso locales
-- **Privacidad**: No almacena tu código en servidores externos
+| Ventaja | Descripción |
+|---------|-------------|
+| **Multi-proveedor** | Soporta OpenAI, Anthropic, Google, Groq, Ollama y más |
+| **TUI avanzada** | Interfaz de terminal moderna con Bubble Tea |
+| **Sin vendor lock-in** | Usa cualquier modelo, incluso locales |
+| **Privacidad** | No almacena tu código en servidores externos |
 
 ---
 
@@ -49,6 +72,23 @@ brew install anomalyco/tap/opencode
 ```bash
 opencode --version
 ```
+
+### ⚠️ Error Común: Permisos en Windows
+
+**Síntoma**: Error de permisos al instalar con script curl
+
+**Solución**:
+```powershell
+# Usar PowerShell como Administrador
+# O instalar via Scoop/Chocolatey (no requiere admin)
+scoop install extras/opencode
+```
+
+### 📍 Checkpoint 1
+
+Antes de continuar, verifica:
+- [ ] `opencode --version` funciona correctamente
+- [ ] Tienes al menos una API key de cualquier proveedor
 
 ---
 
@@ -92,6 +132,8 @@ export GOOGLE_API_KEY="AIza..."
 | **Azure OpenAI** | GPT-4, GPT-3.5 | Azure credentials |
 | **Ollama** | Cualquier modelo local | `OLLAMA_HOST` |
 | **OpenRouter** | 100+ modelos | `OPENROUTER_API_KEY` |
+
+> 💡 **Concepto clave**: OpenCode detecta automáticamente las API keys configuradas. Puedes tener múltiples proveedores y cambiar entre ellos con `/model` sin reconfigurar nada.
 
 ---
 
@@ -173,6 +215,8 @@ OpenCode tiene una interfaz de terminal avanzada:
 # - Modifica código
 # - Ejecuta comandos
 ```
+
+> 💡 **Tip**: El flujo recomendado es: Plan primero (para que la IA piense), luego Build (para ejecutar). Esto reduce errores porque la IA planifica antes de actuar.
 
 ---
 
@@ -270,13 +314,26 @@ opencode
 
 ---
 
-## 📍 Checkpoint
+## 📍 Checkpoint Final
 
 Verifica que puedes:
 - [ ] Ejecutar `opencode --version`
-- [ ] Configurar al menos un proveedor
-- [ ] Usar los modos Plan y Build
+- [ ] Configurar al menos un proveedor de IA
+- [ ] Usar los modos Plan y Build con Tab
 - [ ] Generar un archivo AGENTS.md con `/init`
+- [ ] Cambiar entre modelos con `/model`
+- [ ] Entender cuándo elegir OpenCode sobre otras CLIs
+
+---
+
+## Resumen
+
+| Aspecto | OpenCode |
+|---------|----------|
+| **Mejor para** | Flexibilidad, privacidad, multi-proveedor |
+| **Feature única** | TUI moderna, soporte Ollama nativo |
+| **Costo** | Open source (pagas por los LLMs) |
+| **Limitación** | MCP menos maduro que Claude Code |
 
 ---
 
