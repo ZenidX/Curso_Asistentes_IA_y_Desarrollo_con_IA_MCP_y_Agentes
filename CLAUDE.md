@@ -4,74 +4,58 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Spanish-language course repository: **"Curso de Asistentes IA y Desarrollo con IA, MCP y Agentes"** (AI Assistants and AI-Powered Development with MCP and Agents Course).
+Spanish-language course: **"Curso de Asistentes IA y Desarrollo con IA, MCP y Agentes"** - A 6-module course covering AI APIs, CLI tools, MCP development, and AI-assisted architecture.
 
-## Repository Structure
+## Course Modules
 
-```
-DiseñoCurso/
-├── Modulo 1 APIs de IA Generativa/
-│   ├── Teoria 1.md              # Course theory documentation
-│   ├── requirements.txt         # Python dependencies
-│   ├── config/
-│   │   └── config.example.yaml  # API keys template
-│   ├── scripts/
-│   │   ├── 01_basico/          # Basic API usage examples
-│   │   ├── 02_intermedio/      # Intermediate (streaming, comparison)
-│   │   └── 03_avanzado/        # Advanced (function calling, embeddings)
-│   └── webapp/
-│       ├── app.py              # ReactPy main application
-│       ├── components/         # UI components
-│       └── services/           # AI client abstraction
-├── Curso Completo IA para Desarrollo de Software.md
-└── Ideas de Curso de IA.md
-```
+| Module | Topic | Has Code |
+|--------|-------|----------|
+| 1 | APIs de IA Generativa | ✅ Python scripts + ReactPy webapp |
+| 2 | Herramientas CLI de IA | Theory only (references TaskFlow project) |
+| 3 | Fundamentos de Software IA | Theory only |
+| 4 | MCPs Oficiales | Theory only |
+| 5 | Desarrollo de MCPs | Theory only (MCP server examples) |
+| 6 | Arquitectura IA | Theory only |
 
 ## Development Commands
 
-### Setup
 ```bash
+# Module 1 setup
 cd "DiseñoCurso/Modulo 1 APIs de IA Generativa"
 pip install -r requirements.txt
-cp config/config.example.yaml config/config.yaml
-# Edit config.yaml with your API keys
-```
+cp config/config.example.yaml config/config.yaml  # Add your API keys
 
-### Run Scripts
-```bash
-# Basic examples
+# Run individual scripts
 python scripts/01_basico/openai_basico.py
-python scripts/01_basico/anthropic_basico.py
-python scripts/01_basico/google_basico.py
-python scripts/01_basico/ollama_basico.py
-
-# Intermediate
-python scripts/02_intermedio/comparar_modelos.py
-python scripts/02_intermedio/parametros_avanzados.py
 python scripts/02_intermedio/streaming.py
-
-# Advanced
 python scripts/03_avanzado/function_calling.py
-python scripts/03_avanzado/embeddings.py
+
+# Run webapp (ReactPy)
+cd webapp && uvicorn app:app --reload  # http://localhost:8000
 ```
 
-### Run Webapp
-```bash
-cd webapp
-uvicorn app:app --reload
-# Open http://localhost:8000
+## Architecture
+
+### Module 1 Code Structure
+```
+Modulo 1 APIs de IA Generativa/
+├── scripts/
+│   ├── 01_basico/     → Basic API calls (OpenAI, Anthropic, Google, Ollama)
+│   ├── 02_intermedio/ → Streaming, model comparison, advanced parameters
+│   └── 03_avanzado/   → Function calling, embeddings
+└── webapp/
+    └── services/ai_client.py  → Unified AIClient class for all providers
 ```
 
-## Architecture Notes
-
-- **AI Client (`webapp/services/ai_client.py`)**: Unified interface for OpenAI, Anthropic, Google, and Ollama APIs
-- **Config system**: YAML-based configuration with `config.example.yaml` as template
-- **Scripts progression**: Basic → Intermediate → Advanced, each building on previous concepts
-- **ReactPy webapp**: Single-page application with provider/model selection and parameter controls
+### AIClient (`webapp/services/ai_client.py`)
+Unified interface supporting:
+- **Providers**: OpenAI, Anthropic, Google Gemini, Ollama (local)
+- **Methods**: `chat()` for single response, `chat_stream()` for streaming
+- **Config**: Reads from `config/config.yaml` (YAML format)
 
 ## Content Guidelines
 
-- All content is in Spanish
-- Course modules follow `Modulo N <Topic>/` pattern
-- Theory files use `Teoria N.md` pattern
-- API keys must never be committed (config.yaml is in .gitignore)
+- All content in Spanish
+- Module naming: `Modulo N <Topic>/`
+- Theory files: `Teoria N.md`
+- Comprehensive course reference: `Curso Completo IA para Desarrollo de Software.md`
