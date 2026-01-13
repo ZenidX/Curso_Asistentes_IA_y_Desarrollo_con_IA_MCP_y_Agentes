@@ -27,7 +27,7 @@ git clone <repo-url>
 cd IA
 
 # Configurar Módulo 1
-cd "DiseñoCurso/Modulo 1 APIs de IA Generativa"
+cd "Modulo 1 APIs de IA Generativa"
 pip install -r requirements.txt
 
 # Configurar API keys
@@ -53,7 +53,6 @@ uvicorn app:app --reload
 ## Estructura del Proyecto
 
 ```
-DiseñoCurso/
 ├── Modulo 1 APIs de IA Generativa/
 │   ├── Teoria 1.md
 │   ├── config/config.example.yaml
@@ -63,7 +62,8 @@ DiseñoCurso/
 │   │   └── 03_avanzado/    # Function calling, embeddings
 │   └── webapp/             # App ReactPy con chat multi-proveedor
 ├── Modulo 2-6/             # Contenido teórico
-└── Curso Completo IA para Desarrollo de Software.md
+├── CLAUDE.md               # Contexto para Claude Code
+└── README.md
 ```
 
 ## APIs Soportadas

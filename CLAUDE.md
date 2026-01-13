@@ -21,7 +21,7 @@ Spanish-language course: **"Curso de Asistentes IA y Desarrollo con IA, MCP y Ag
 
 ```bash
 # Module 1 setup
-cd "DiseñoCurso/Modulo 1 APIs de IA Generativa"
+cd "Modulo 1 APIs de IA Generativa"
 pip install -r requirements.txt
 cp config/config.example.yaml config/config.yaml  # Add your API keys
 
