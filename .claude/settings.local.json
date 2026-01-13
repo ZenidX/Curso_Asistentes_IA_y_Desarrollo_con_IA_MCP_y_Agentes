@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(tree:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(git show-ref:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git cat-file:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(dir /b \"C:\\\\Users\\\\XaviLara\\\\Downloads\\\\IA\\\\DiseñoCurso\")",
+      "WebFetch(domain:opencode.ai)",
+      "WebSearch",
+      "WebFetch(domain:supabase.com)",
+      "Bash(git push:*)"
     ]
   }
 }
